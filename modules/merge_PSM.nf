@@ -36,6 +36,6 @@ process merge_PSM {
         -in ${input_idxmls} \\
         -out ${output_idxml} \\
         -threads ${task.cpus} \\
-        -debug 1
+        -debug 1 ${arg_pepxml_protxml}
     """
 }

@@ -47,7 +47,7 @@ process convert_pepXML2idXML {
         -in ${pepXML_fixed} \\
         -out ${idXML} \\
         -mz_file ${mzML}
-    if ! grep -Fxq "spectra_data" ${idXML}; then
+    if ! grep -Fq 'name="spectra_data"' ${idXML}; then
         sed -i '/<\\/ProteinIdentification>/ i \\${' ' * 24}<UserParam type="stringList" name="spectra_data" value="[${mzML.name}]"\\/>' ${idXML}
     fi
     sed -i 's/higher_score_better="true"/higher_score_better="false"/g' ${idXML}

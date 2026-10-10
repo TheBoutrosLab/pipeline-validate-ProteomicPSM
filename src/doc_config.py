@@ -6,7 +6,7 @@ from typing import List
 from jinja2 import Environment, FileSystemLoader
 
 # pylint: disable=W1401
-DOCKER_REPO_OPENMS = 'blcdsdockerregistry/openms-thirdparty:2.8.0'
+DOCKER_REPO_OPENMS = 'ghcr.io/theboutroslab/openms-thirdparty:3.5.0'
 MODULE_COMMANDS = {
         'PeptideIndexer': {
             'path': 'modules/index_peptides.nf',

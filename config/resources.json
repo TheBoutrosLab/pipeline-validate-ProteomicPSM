@@ -54,24 +54,6 @@
                 }
             }
         },
-        "switch_score_2_search_engine": {
-            "cpus": {
-                "min": 1,
-                "fraction": 0.1,
-                "max": 4
-            },
-            "memory": {
-                "min": "4 GB",
-                "fraction": 0.25,
-                "max": "24 GB"
-            },
-            "retry_strategy": {
-                "memory": {
-                    "strategy": "exponential",
-                    "operand": 2
-                }
-            }
-        },
         "score_FDR_OpenMS": {
             "cpus": {
                 "min": 1,

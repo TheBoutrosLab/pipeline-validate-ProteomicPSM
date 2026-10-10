@@ -6,7 +6,6 @@ include { index_peptides; index_peptides as index_peptide_aggregated } from "${p
 include { extract_PSM_features } from "${projectDir}/modules/extract_PSM_features"
 include { score_PEP_percolator } from "${projectDir}/modules/score_PEP_percolator"
 include { score_FDR_OpenMS } from "${projectDir}/modules/score_FDR_OpenMS"
-include { switch_score_2_search_engine } from "${projectDir}/modules/switch_score_2_search_engine"
 include { switch_score_2_pep } from "${projectDir}/modules/switch_score_2_pep"
 include { fix_idXMLSpectraDataPath } from "${projectDir}/modules/fix_idXMLSpectraDataPath.nf"
 include { merge_PSM; merge_PSM as merge_PSM_fractions } from "${projectDir}/modules/merge_PSM"
@@ -23,6 +22,7 @@ workflow {
     ich = Channel.fromPath(params.input_csv)
         .splitCsv(header:true)
         .map { row -> [file(row.idXML), row.search_engine] }
+        .ifEmpty { error "Input CSV '${params.input_csv}' has no data rows." }
 
     // PeptideIndexer can be skipped if the input idXML is from OpenMS search engine adapters.
     // Because PeptideIndexer is called internally already.
@@ -42,13 +42,8 @@ workflow {
         extract_PSM_features(indexed_by_engine.supported)
         score_PEP_percolator(extract_PSM_features.out[0].mix(indexed_by_engine.sage))
 
-        percolator_by_engine = score_PEP_percolator.out[0].branch {
-            sage: it[1].equalsIgnoreCase('Sage')
-            supported: true
-        }
-        switch_score_2_search_engine(percolator_by_engine.supported)
-        // FalseDiscoveryRate can score Sage PSMs directly from their Percolator PEPs.
-        idXML_to_score_FDR = switch_score_2_search_engine.out[0].mix(percolator_by_engine.sage)
+        // FalseDiscoveryRate uses Percolator PEPs for every search engine.
+        idXML_to_score_FDR = score_PEP_percolator.out[0]
     } else {
         idXML_to_score_FDR = idXML_indexed
     }
