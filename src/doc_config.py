@@ -29,7 +29,7 @@ MODULE_COMMANDS = {
 
 def get_command_args(path:Path):
     """ Read NF module source code and extract the arguments needed. """
-    with open(path, 'rt') as handle:
+    with open(path, 'rt', encoding='utf-8') as handle:
         scopes = ['PARAMETER_MAPPER', 'FLAG_MAPPER', 'ADDITIONAL_MAPPER']
         args = {}
         cur = None
@@ -114,7 +114,6 @@ def get_command_data_openms(command:str, args:List[str], prefix:str=None):
 def get_command_desc(command:str, args:List[str], image, prefix:str=None):
     """ Get the paramter name, type, and description for the specified OpenMS
     command/program """
-    # pylint: disable=R0914
     if image == 'OpenMS':
         arg_desc = get_command_data_openms(command, args, prefix)
     else:
@@ -175,7 +174,7 @@ def render_params_rst():
     data = get_params_data(MODULE_COMMANDS)
     print(data.keys())
     rendered = template.render(data=data)
-    with open('docs/params.rst', "w") as handle:
+    with open('docs/params.rst', 'w', encoding='utf-8') as handle:
         handle.write(rendered)
 
 if __name__ == '__main__':
