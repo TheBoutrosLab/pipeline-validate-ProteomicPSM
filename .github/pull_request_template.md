@@ -3,8 +3,8 @@
 
 ### Closes #...  <!-- edit if this PR closes an Issue -->
 
-<!-- 
-Admin/maintainer: please edit the 'Pipeline Run Results' or 'Analysis Results' sections as needed for your project repo.  
+<!--
+Admin/maintainer: please edit the 'Pipeline Run Results' or 'Analysis Results' sections as needed for your project repo.
 Then commit/push the changes so everyone uses this template for future PRs.
 
 For example, if your project is a `pipeline`, then create a 'Pipeline Run Results' section.
@@ -13,31 +13,11 @@ If your project is a general data analysis project, then you may want to require
 code from each PR to help prevent creating new bugs.
 -->
 
-## Pipeline Run Results
-
-- Case 1
-    - sample:    <!-- e.g. A-mini S2.T-1, A-mini S2.T-n1 -->
-    - test:      <!-- Specific pipeline test case -->
-- Case 2
-    - sample:    <!-- e.g. A-mini S2.T-1, A-mini S2.T-n1 -->
-    - test:      <!-- Specific pipeline test case -->
-
-## Analysis Results
-
-- Case 1
-    - script:    <!-- path/to/script.R -->
-    - command:   <!-- path/to/launch.sh -->
-    - output:    <!-- path/to/output -->
-- Case 2
-    - script:    <!-- path/to/script.R -->
-    - command:   <!-- path/to/launch.sh -->
-    - output:    <!-- path/to/output -->
-
 # Checklist
 <!--- Please read each of the following items and confirm by replacing the [ ] with a [X] --->
 
 - [ ] This PR **does *NOT* contain** Protected Health Information [(PHI)](https://www.hhs.gov/hipaa/for-professionals/privacy/laws-regulations/index.html). A repo may ***need to be deleted*** if such data is uploaded. <br> Disclosing PHI is a ***major problem***[^1] - Even ***a small leak can be costly***[^2].
-  
+
 - [ ] This PR **does *NOT* contain** germline genetic data[^3], RNA-Seq, DNA methylation, microbiome or other molecular data[^4].
 
 [^1]: [UCLA Health reaches $7.5m settlement over 2015 breach of 4.5m patient records](https://healthitsecurity.com/news/ucla-health-reaches-7.5m-settlement-over-2015-breach-of-4.5m)
@@ -56,6 +36,6 @@ _&emsp; To automatically exclude such files using a [.gitignore](https://docs.gi
 - [ ] I have set up or verified the `main` branch protection rule following the [github standards] before opening this pull request.
 
 - [ ] The name of the branch is meaningful and well formatted following the [standards], using [AD_username (or 5 letters of AD if AD is too long)]-[brief_description_of_branch].
-  
+
 - [ ] I have added the major changes included in this pull request to the `CHANGELOG.md` under the next release version or unreleased, and updated the date.
 

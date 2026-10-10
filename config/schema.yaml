@@ -1,74 +1,114 @@
----
-dataset_id:
-  type: 'String'
+input_csv:
+  type: Path
+  mode: r
   required: true
-  help: 'Dataset identifier'
-patient_id:
-  type: 'String'
-  required: true
-  help: 'Patient identifier'
-sample_id:
-  type: 'String'
-  required: true
-  help: 'Sample identifier'
-param_name:
-  type: 'String'
-  required: false
-  default: 'foo-bar'
-  help: 'Example pipeline parameter; replace with pipeline-specific parameters'
+  help: CSV containing search_engine and idXML columns.
 output_dir:
-  type: 'Path'
-  mode: 'w'
+  type: Path
+  mode: w
   required: true
-  help: 'Absolute path to output directory'
-apptainer_library:
-  type: 'Path'
-  mode: 'r'
+  help: Root output directory.
+sample_name:
+  type: String
+  required: true
+  help: Sample or plex name.
+decoy_database:
+  type: Path
+  mode: r
+  required: true
+  help: Target-decoy FASTA used for peptide indexing.
+decoy_string:
+  type: String
   required: false
-  help: 'Absolute path to Apptainer library directory'
-apptainer_cache:
-  type: 'Path'
-  mode: 'w'
+  help: Decoy protein prefix.
+merge_consensus:
+  type: Bool
   required: false
-  help: 'Absolute path to Apptainer cache directory'
-singularity_library:
-  type: 'Path'
-  mode: 'r'
+  help: Merge consensus.
+fractionated:
+  type: Bool
   required: false
-  help: 'Absolute path to Singularity library directory'
-singularity_cache:
-  type: 'Path'
-  mode: 'w'
+  help: Fractionated.
+skip_peptide_indexing:
+  type: Bool
   required: false
-  help: 'Absolute path to Singularity cache directory'
+  help: Skip peptide indexing.
+run_percolator:
+  type: Bool
+  required: false
+  help: Run percolator.
+save_intermediate_files:
+  type: Bool
+  required: false
+  help: Save intermediate files.
+filter_psm_remove_decoys:
+  type: Bool
+  required: false
+  help: Filter psm remove decoys.
+filter_psm_keep_unreferenced_protein_hits:
+  type: Bool
+  required: false
+  help: Filter psm keep unreferenced protein hits.
+filter_psm_delete_unreferenced_peptide_hits:
+  type: Bool
+  required: false
+  help: Filter psm delete unreferenced peptide hits.
+fdr_algorithm_no_qvalues:
+  type: Bool
+  required: false
+  help: Fdr algorithm no qvalues.
+filter_psm_whitelist_proteins:
+  type: Path
+  mode: r
+  required: false
+  help: Optional IDFilter input.
+filter_psm_whitelist_peptides:
+  type: Path
+  mode: r
+  required: false
+  help: Optional IDFilter input.
+filter_psm_blacklist_proteins:
+  type: Path
+  mode: r
+  required: false
+  help: Optional IDFilter input.
+filter_psm_blacklist_peptides:
+  type: Path
+  mode: r
+  required: false
+  help: Optional IDFilter input.
+filter_psm_in_silico_digestion:
+  type: Path
+  mode: r
+  required: false
+  help: Optional IDFilter input.
+enzyme:
+  type: String
+  required: false
+  help: Digest enzyme for PeptideIndexer and Percolator.
+filter_psm_score_peptide:
+  type: Number
+  required: false
+  help: Peptide FDR cutoff.
+ucla_cds:
+  type: Bool
+  default: false
+  help: Shared execution compatibility flag.
+work_dir:
+  type: Path
+  mode: w
+  required: false
+  help: Optional Nextflow working directory.
 base_resource_update:
-  type: 'ResourceUpdateNamespace'
+  type: ResourceUpdateNamespace
   required: false
-  help: 'User-defined modifications for adjusting base resource allocations for processes'
+  help: Per-process resource overrides.
   elements:
     memory:
-      type: 'ResourceUpdateList'
+      type: ResourceUpdateList
       required: false
-      help: 'List of memory updates'
+      help: Memory updates.
     cpus:
-      type: 'ResourceUpdateList'
+      type: ResourceUpdateList
       required: false
-      help: 'List of CPU updates'
-input:
-  type: 'InputNamespace'
-  required: true
-  help: 'Input samples'
-  elements:
-    BAM:
-      type: 'InputBAMNamespace'
-      required: true
-      help: 'Input BAM samples grouped by sample type'
-      elements:
-        normal:
-          type: 'BAMEntryList'
-          required: false
-          help: 'Input normal sample'
-        tumor:
-          type: 'BAMEntryList'
-          required: false
-          help: 'Input tumor sample'
+      help: CPU updates.

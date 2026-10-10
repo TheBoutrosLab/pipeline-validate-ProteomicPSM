@@ -1,0 +1,10 @@
+Category: "pipeline"
+Description: "Validate peptide-spectrum matches with OpenMS and Percolator"
+Maintainers: ["Chenghao Zhu"]
+Contributors: []
+Languages: ["Nextflow", "Python"]
+Dependencies: ["Java", "Nextflow", "Docker"]
+References: ""
+Tools: ["OpenMS-thirdparty:3.5.0", "pyOpenMS:3.5.0", "Percolator"]
+Engineering_Owner: []
+Scientific_Owner: []

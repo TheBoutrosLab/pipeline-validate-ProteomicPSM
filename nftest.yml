@@ -1,0 +1,35 @@
+---
+global:
+  temp_dir: ./test/work
+  nf_config: test/global.config
+  remove_temp: false
+  clean_logs: true
+
+cases:
+  - name: test-integration-OpenMS
+    message: Integration test using OpenMS
+    nf_script: main.nf
+    nf_config: test/test_integration/test.config
+    skip: false
+    verbose: true
+
+  - name: test-integration-skip-indexing
+    message: Integration test skipping peptide indexing
+    nf_script: main.nf
+    nf_config: test/test_integration_skip_indexing/test.config
+    skip: false
+    verbose: true
+
+  - name: test-integration-no-percolator
+    message: Integration test without running percolator
+    nf_script: main.nf
+    nf_config: test/test_integration_no_percolator/test.config
+    skip: false
+    verbose: true
+
+  - name: test-integration-merge-unfractionated
+    message: Integration test for unfractionated with multiple search engines to call consensus
+    nf_script: main.nf
+    nf_config: test/test_integration_merge_unfractionated/test.config
+    skip: false
+    verbose: true
