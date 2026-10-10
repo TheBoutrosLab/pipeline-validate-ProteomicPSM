@@ -51,10 +51,6 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../flow-diagram/">Flow Diagram</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../pipeline-steps/">Pipeline Steps</a>
                 </li>
               </ul>
@@ -67,19 +63,7 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../testing-and-validation/">Testing and Validation</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../discussions/">Discussions</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../contributors/">Contributors</a>
                 </li>
               </ul>
               <ul>
@@ -102,7 +86,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Overview</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/39f01de7c682690476ad4854861017c7d1ed1765/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -111,7 +95,7 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="overview">Overview</h2>
-<p>A 3-4 sentence summary of the pipeline, including the pipeline's purpose, the type of expected scientific inputs/outputs of the pipeline (e.g: FASTQs and BAMs), and a list of tools/steps in the pipeline.</p>
+<p>This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML search results. One run processes one label-free sample or one isobaric plex, with results from one or more search engines. It can index peptides against a target-decoy FASTA, rescore PSMs with <a href="https://doi.org/10.1038/nmeth1113">Percolator</a>, estimate PSM-level false discovery rates with OpenMS, filter identifications, and export mzTab. It can also combine search engines with ConsensusID, including results from multiple fractions.</p>
 <hr />
               
             </div>

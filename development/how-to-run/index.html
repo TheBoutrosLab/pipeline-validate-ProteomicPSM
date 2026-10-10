@@ -51,10 +51,6 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../flow-diagram/">Flow Diagram</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../pipeline-steps/">Pipeline Steps</a>
                 </li>
               </ul>
@@ -67,19 +63,7 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../testing-and-validation/">Testing and Validation</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../discussions/">Discussions</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../contributors/">Contributors</a>
                 </li>
               </ul>
               <ul>
@@ -102,7 +86,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">How To Run</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/39f01de7c682690476ad4854861017c7d1ed1765/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -113,22 +97,30 @@
                 <h2 id="how-to-run">How To Run</h2>
 <ol>
 <li>
-<p>Update the params section of the .config file</p>
+<p>Create a <code>.config</code> using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/config/template.config">template</a>. Set <code>input_csv</code>, <code>output_dir</code>, <code>sample_name</code>, and <code>decoy_database</code>. Match <code>decoy_string</code> to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.</p>
 </li>
 <li>
-<p>Update the input yaml</p>
+<p>Create an input CSV using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/input/input.csv">template</a>. List the idXML result for each search engine used on the same sample or plex. Use absolute idXML paths.</p>
 </li>
 <li>
-<p>See the submission script, <a href="https://github.com/theboutroslab/tool-submit-nf">here</a>, to submit your pipeline</p>
+<p>Initialize the Git submodules and run the pipeline with Nextflow, for example:</p>
 </li>
 </ol>
+<p><code>bash
+   export NXF_VER=24.10.6
+   export NXF_SYNTAX_PARSER=v1
+   nextflow run TheBoutrosLab/pipeline-validate-ProteomicPSM -r &lt;version&gt; -c config/my-run.config</code></p>
+<p>The supplied configuration template defaults to Docker. Use <code>-profile apptainer</code> or <code>-profile singularity</code> when appropriate for the execution environment. The <code>local</code> profile uses installed executables for development. The <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/.env-template"><code>.env-template</code></a> records the Nextflow version used by the shared SBP configuration modules.</p>
+<blockquote>
+<p>:warning: Run one sample or plex at a time. With consensus enabled, all idXML rows in the CSV are combined into one sample-level result.</p>
+</blockquote>
 <hr />
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../overview/" class="btn btn-neutral float-left" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../flow-diagram/" class="btn btn-neutral float-right" title="Flow Diagram">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../pipeline-steps/" class="btn btn-neutral float-right" title="Pipeline Steps">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -158,7 +150,7 @@
       <span><a href="../overview/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../flow-diagram/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../pipeline-steps/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

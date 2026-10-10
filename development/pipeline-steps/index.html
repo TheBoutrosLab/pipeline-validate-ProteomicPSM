@@ -48,19 +48,9 @@
                 <li class="toctree-l1"><a class="reference internal" href="../how-to-run/">How To Run</a>
                 </li>
               </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../flow-diagram/">Flow Diagram</a>
-                </li>
-              </ul>
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Pipeline Steps</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#1-stepprocess-1">1. Step/Process 1</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#2-stepprocess-2">2. Step/Process 2</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#3-stepprocess-n">3. Step/Process n</a>
-    </li>
     </ul>
                 </li>
               </ul>
@@ -73,19 +63,7 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../testing-and-validation/">Testing and Validation</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../discussions/">Discussions</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../contributors/">Contributors</a>
                 </li>
               </ul>
               <ul>
@@ -108,7 +86,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Pipeline Steps</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/39f01de7c682690476ad4854861017c7d1ed1765/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -117,24 +95,15 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="pipeline-steps">Pipeline Steps</h2>
-<h3 id="1-stepprocess-1">1. Step/Process 1</h3>
-<blockquote>
-<p>A 2-3 sentence description of each step/proccess in your pipeline that includes the purpose of the step/process, the tool(s) being used and their version, and the expected scientific inputs/outputs (e.g: FASTQs and BAMs) of the pipeline.</p>
-</blockquote>
-<h3 id="2-stepprocess-2">2. Step/Process 2</h3>
-<blockquote>
-<p>A 2-3 sentence description of each step/proccess in your pipeline that includes the purpose of the step/process, the tool(s) being used and their version, and the expected scientific inputs/outputs (e.g: FASTQs and BAMs) of the pipeline.</p>
-</blockquote>
-<h3 id="3-stepprocess-n">3. Step/Process n</h3>
-<blockquote>
-<p>A 2-3 sentence description of each step/proccess in your pipeline that includes the purpose of the step/process, the tool(s) being used and their version, and the expected scientific inputs/outputs (e.g: FASTQs and BAMs) of the pipeline.</p>
-</blockquote>
+<p><img alt="Proteomic PSM validation workflow" src="../img/flow-diagram.drawio.svg?raw=true" /></p>
+<p>The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage goes directly to PercolatorAdapter with the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.</p>
+<p>The right lane runs when <code>merge_consensus = true</code>. It aligns primary MS run paths, combines search engines with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With <code>fractionated = true</code>, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward.</p>
 <hr />
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../flow-diagram/" class="btn btn-neutral float-left" title="Flow Diagram"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../how-to-run/" class="btn btn-neutral float-left" title="How To Run"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../inputs/" class="btn btn-neutral float-right" title="Inputs">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -162,7 +131,7 @@
         </span>
     
     
-      <span><a href="../flow-diagram/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../how-to-run/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../inputs/" style="color: #fcfcfc">Next &raquo;</a></span>

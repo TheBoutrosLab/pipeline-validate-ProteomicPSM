@@ -49,17 +49,13 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../flow-diagram/">Flow Diagram</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../pipeline-steps/">Pipeline Steps</a>
                 </li>
               </ul>
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="./">Inputs</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#input-yaml">Input YAML</a>
+    <li class="toctree-l2"><a class="reference internal" href="#input-csv">Input CSV</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#config">Config</a>
     </li>
@@ -71,19 +67,7 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../testing-and-validation/">Testing and Validation</a>
-                </li>
-              </ul>
-              <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../discussions/">Discussions</a>
-                </li>
-              </ul>
-              <ul>
-                <li class="toctree-l1"><a class="reference internal" href="../contributors/">Contributors</a>
                 </li>
               </ul>
               <ul>
@@ -106,7 +90,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Inputs</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/39f01de7c682690476ad4854861017c7d1ed1765/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/fcfbd2ab3ba1c0320bf84fb4435b0d71e2639a38/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -115,59 +99,148 @@
             <div class="section" itemprop="articleBody">
               
                 <h2 id="inputs">Inputs</h2>
-<h3 id="input-yaml">Input YAML</h3>
-<blockquote>
-<p>include an example of the organization structure within the YAML. Example:</p>
-</blockquote>
-<pre><code class="language-yaml">input 1: 'patient_id'
-input:
-    normal:
-      - id: &lt;normal id&gt;
-        BAM: &lt;/path/to/normal.bam&gt;
-    tumor:
-      - id: &lt;tumor id&gt;
-        BAM: &lt;/path/to/tumor.bam&gt;
-</code></pre>
-<h3 id="config">Config</h3>
+<h3 id="input-csv">Input CSV</h3>
+<p>The CSV has one idXML file per search engine, with all rows belonging to the same sample or plex:</p>
 <table>
 <thead>
 <tr>
 <th>Field</th>
-<th>Type</th>
 <th>Required</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>param 1</td>
-<td><em>type</em></td>
-<td>yes/no</td>
-<td>1-2 sentence description of the parameter, including any defaults if any.</td>
+<td><code>search_engine</code></td>
+<td>yes</td>
+<td>Search engine name, such as <code>Comet</code>, <code>Sage</code>, <code>MSFragger</code>, or <code>XTandem</code>.</td>
 </tr>
 <tr>
-<td>param 2</td>
-<td><em>type</em></td>
-<td>yes/no</td>
-<td>1-2 sentence description of the parameter, including any defaults if any.</td>
-</tr>
-<tr>
-<td>param n</td>
-<td><em>type</em></td>
-<td>yes/no</td>
-<td>1-2 sentence description of the parameter, including any defaults if any.</td>
-</tr>
-<tr>
-<td><code>work_dir</code></td>
-<td>path</td>
-<td>no</td>
-<td>Path of working directory for Nextflow. When included in the sample config file, Nextflow intermediate files and logs will be saved to this directory. With ucla_cds, the default is <code>/scratch</code> and should only be changed for testing/development. Changing this directory to <code>/hot</code> or <code>/tmp</code> can lead to high server latency and potential disk space limitations, respectively.</td>
+<td><code>idXML</code></td>
+<td>yes</td>
+<td>Absolute path to that engine's idXML search result.</td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p>Include the optional param <code>work_dir</code> in the inputs accompanied by a warning of the potentials dangers of using the param. Update the warning if necessary.</p>
-</blockquote>
+<pre><code class="language-csv">search_engine,idXML
+Comet,/data/SBP0001_Comet.idXML
+Sage,/data/SBP0001_Sage.idXML
+MSFragger,/data/SBP0001_MSFragger.idXML
+</code></pre>
+<p>The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require <code>run_percolator = false</code>.</p>
+<h3 id="config">Config</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input_csv</code></td>
+<td>string(path)</td>
+<td>Path to the input CSV.</td>
+</tr>
+<tr>
+<td><code>output_dir</code></td>
+<td>string(path)</td>
+<td>Root output directory.</td>
+</tr>
+<tr>
+<td><code>sample_name</code></td>
+<td>string</td>
+<td>Name of the one sample or plex processed in this run.</td>
+</tr>
+<tr>
+<td><code>decoy_database</code></td>
+<td>string(path)</td>
+<td>Target-decoy protein FASTA used for peptide indexing. Required by the configuration schema.</td>
+</tr>
+<tr>
+<td><code>decoy_string</code></td>
+<td>string</td>
+<td>Decoy protein prefix used by PeptideIndexer. Defaults to <code>DECOY_</code>.</td>
+</tr>
+<tr>
+<td><code>enzyme</code></td>
+<td>string</td>
+<td>Digestion enzyme for PeptideIndexer, IDFilter, and Percolator. Defaults to <code>Trypsin</code>.</td>
+</tr>
+<tr>
+<td><code>skip_peptide_indexing</code></td>
+<td>bool</td>
+<td>Skip PeptideIndexer when input idXML is already indexed. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>run_percolator</code></td>
+<td>bool</td>
+<td>Rescore PSMs with PercolatorAdapter. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>percolator_post_processing_tdc</code></td>
+<td>bool</td>
+<td>Enable Percolator target-decoy competition post-processing. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>merge_consensus</code></td>
+<td>bool</td>
+<td>Combine search-engine results with ConsensusID. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>fractionated</code></td>
+<td>bool</td>
+<td>Split fractionated idXML before consensus merging. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>filter_psm_score_peptide</code></td>
+<td>number</td>
+<td>Maximum PSM q-value passed to <code>IDFilter -score:psm</code> when q-values are used. Defaults to <code>0.01</code>. The parameter name is retained for compatibility.</td>
+</tr>
+<tr>
+<td><code>filter_psm_remove_decoys</code></td>
+<td>bool</td>
+<td>Remove decoy identifications from filtered outputs. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>filter_psm_whitelist_proteins</code>, <code>filter_psm_whitelist_peptides</code></td>
+<td>string(path)</td>
+<td>Optional FASTA or idXML files restricting retained proteins or peptides.</td>
+</tr>
+<tr>
+<td><code>filter_psm_blacklist_proteins</code>, <code>filter_psm_blacklist_peptides</code></td>
+<td>string(path)</td>
+<td>Optional FASTA or idXML files excluding proteins or peptides.</td>
+</tr>
+<tr>
+<td><code>filter_psm_in_silico_digestion</code></td>
+<td>string(path)</td>
+<td>Optional FASTA for IDFilter digestion-based filtering.</td>
+</tr>
+<tr>
+<td><code>save_intermediate_files</code></td>
+<td>bool</td>
+<td>Publish intermediate idXML files. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>ucla_cds</code></td>
+<td>bool</td>
+<td>Compatibility flag required by the shared execution setup. Keep <code>false</code> outside the legacy UCLA-CDS environment.</td>
+</tr>
+<tr>
+<td><code>work_dir</code></td>
+<td>string(path)</td>
+<td>Optional location for Nextflow intermediate files.</td>
+</tr>
+<tr>
+<td><code>base_resource_update</code></td>
+<td>namespace</td>
+<td>Optional per-process CPU and memory multipliers applied to default allocations.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional OpenMS options and their pipeline parameter names are listed in <a href="../params.rst">docs/params.rst</a>.</p>
 <hr />
               
             </div>
