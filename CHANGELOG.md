@@ -1,6 +1,12 @@
 # Changelog
 
-## [1.0.0] - Pending release
+## [1.0.1] - 2026-10-11
+
+### Fixed
+- Restore Percolator PEP scores after FDR using the `Posterior Error Probability_score` metadata key in `IDScoreSwitcher` ([#4](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/4)).
+- Use `PeptideIdentificationList` when loading idXML in the primary MS run path helper with pyOpenMS 3.5 ([#5](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/5)).
+
+## [1.0.0] - 2026-10-10
 
 ### Added
 - Nextflow DSL2 workflow that reads search-engine idXML paths from a sample-level CSV and optionally indexes peptide hits against a target-decoy FASTA.

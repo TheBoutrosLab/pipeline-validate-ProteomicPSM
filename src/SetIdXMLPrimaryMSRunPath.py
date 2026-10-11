@@ -2,7 +2,7 @@
 field of the ID run. This is just to resolve the issue the ConsensusID only
 runs with ProteinIdentification with exactly one mzML file. """
 import argparse
-from pyopenms import IdXMLFile
+from pyopenms import IdXMLFile, PeptideIdentificationList
 
 def parse_args() -> argparse.Namespace:
     """ parse args """
@@ -32,7 +32,7 @@ def main():
     args = parse_args()
 
     prot_idents = []
-    pep_idents = []
+    pep_idents = PeptideIdentificationList()
     IdXMLFile().load(args.input_path, prot_idents, pep_idents)
 
     if len(prot_idents) > 1:

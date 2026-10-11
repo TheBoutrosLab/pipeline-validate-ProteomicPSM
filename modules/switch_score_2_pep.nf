@@ -32,7 +32,7 @@ process switch_score_2_pep {
         -out ${output_idxml} \\
         -threads ${task.cpus} \\
         -old_score '${old_score}' \\
-        -new_score 'Posterior Error Probability' \\
+        -new_score 'Posterior Error Probability_score' \\
         -new_score_type 'Posterior Error Probability' \\
         -new_score_orientation 'lower_better'
     """
