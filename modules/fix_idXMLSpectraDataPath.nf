@@ -7,18 +7,19 @@
 process fix_idXMLSpectraDataPath {
     container params.docker_image_pyopenms
 
-    publishDir "${params.intermediate_file_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         enabled: params.save_intermediate_files,
         pattern: "*.idXML"
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "${input_idxml.baseName}/log${file(it).name}" }
 
     input:
         tuple(
+            val(sample_name),
             file(input_idxml),
             val(search_engine)
         )
@@ -27,6 +28,7 @@ process fix_idXMLSpectraDataPath {
 
     output:
         tuple(
+            val(sample_name),
             file(output_idxml),
             val(search_engine)
         )
@@ -36,13 +38,13 @@ process fix_idXMLSpectraDataPath {
     if (fractionated == true) {
         output_idxml = "${input_idxml.baseName}_FixSpectraDataPath.idXML"
     } else {
-        output_idxml = "${params.sample_name}_${search_engine}_FixSpectraDataPath.idXML"
+        output_idxml = "${sample_name}_${search_engine}_FixSpectraDataPath.idXML"
     }
 
     """
     python ${helper_script} \\
         --input-path ${input_idxml} \\
         --output-path ${output_idxml} \\
-        --mzML ${params.sample_name}_merged.mzML
+        --mzML ${sample_name}_merged.mzML
     """
 }

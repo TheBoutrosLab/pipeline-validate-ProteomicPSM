@@ -2,23 +2,23 @@
 process merge_PSM {
     container params.docker_image_openms
 
-    publishDir "${params.intermediate_file_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         enabled: params.save_intermediate_files,
         pattern: "*.idXML"
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
-        file input_idxmls
+        tuple val(sample_name), file(input_idxmls)
         val pepxml_protxml
         val fractionated
 
     output:
-        file(output_idxml)
+        tuple val(sample_name), file(output_idxml)
         file ".command.*"
 
     script:
@@ -27,7 +27,7 @@ process merge_PSM {
         // e.g., CPT0001_reindex_1_MSFragger_FixSpectraDataPath.idXML
         output_idxml = "${input_idxmls[0].baseName.replaceFirst('_[a-zA-Z0-9]+_[a-zA-Z0-9]+$', '')}_merged.idXML"
     } else {
-        output_idxml = "${params.sample_name}_merged.idXML"
+        output_idxml = "${sample_name}_merged.idXML"
     }
     
     arg_pepxml_protxml = pepxml_protxml ? ' -pepxml_protxml' : ''

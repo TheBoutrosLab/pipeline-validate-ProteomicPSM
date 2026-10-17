@@ -21,8 +21,29 @@ printPrelogue()
 workflow {
     ich = Channel.fromPath(params.input_csv)
         .splitCsv(header:true)
-        .map { row -> [file(row.idXML), row.search_engine] }
         .ifEmpty { error "Input CSV '${params.input_csv}' has no data rows." }
+        .collect()
+        .flatMap { rows ->
+            if (!rows[0].containsKey('sample_name')) {
+                error "Input CSV '${params.input_csv}' is missing required sample_name column."
+            }
+            def seen = [] as Set
+            rows.collect { row ->
+                def sample_name = row.sample_name?.trim()
+                def search_engine = row.search_engine?.trim()
+                def idxml = row.idXML?.trim()
+                if (!(sample_name ==~ /[A-Za-z0-9][A-Za-z0-9._-]*/)) {
+                    error "Invalid or missing sample_name in input CSV: '${sample_name}'."
+                }
+                if (!search_engine || !idxml) {
+                    error "Each input CSV row needs search_engine and idXML."
+                }
+                if (!seen.add([sample_name, search_engine.toLowerCase()])) {
+                    error "Duplicate input CSV row for sample '${sample_name}' and search engine '${search_engine}'."
+                }
+                [sample_name, file(idxml), search_engine]
+            }
+        }
 
     // PeptideIndexer can be skipped if the input idXML is from OpenMS search engine adapters.
     // Because PeptideIndexer is called internally already.
@@ -36,7 +57,7 @@ workflow {
     if (params.run_percolator == true) {
         // OpenMS PSMFeatureExtractor has no Sage-specific feature handler.
         indexed_by_engine = idXML_indexed.branch {
-            sage: it[1].equalsIgnoreCase('Sage')
+            sage: it[2].equalsIgnoreCase('Sage')
             supported: true
         }
         extract_PSM_features(indexed_by_engine.supported)
@@ -76,47 +97,41 @@ workflow {
             // Split idXML to fraction specific
             split_idXML(ch_idXML_individual)
             ch_idXML_split = split_idXML.out[0]
-                .map { it ->
-                    res = []
-                    search_engine = it[1]
-                    it[0].each { idXML_file ->
-                        res.add( [
-                            'search_engine': search_engine,
-                            'idXML': idXML_file
-                        ] )
+                .flatMap { sample_name, idxml_files, search_engine ->
+                    idxml_files.collect { idxml_file ->
+                        [sample_name, idxml_file, search_engine]
                     }
-                    return res
                 }
-                .flatten()
-                .map { [it['idXML'], it['search_engine']] }
 
             fix_idXMLSpectraDataPath(ch_idXML_split, true, file("${projectDir}/src/SetIdXMLPrimaryMSRunPath.py"))
 
             ch_idXML_spectra_fixed = fix_idXMLSpectraDataPath.out[0]
-                .map { idXML, se ->
+                .map { sample_name, idXML, se ->
                     // Get the base file name with sample name and fraction ID.
                     // E.g., CCLE0100_fr1_MSFragger.idXML -> CCLE0100_fr1
-                    file_origin = idXML.baseName.split("_${se}")[0]
-                    return [file_origin, idXML]
+                    file_origin = idXML.baseName.replaceFirst(/_${se}_FixSpectraDataPath$/, '')
+                    return [sample_name, file_origin, idXML]
                 }
-                .groupTuple(by:0)
-                .map { it[1] }
+                .groupTuple(by:[0,1])
+                .map { sample_name, file_origin, idxml_files -> [sample_name, idxml_files] }
             merge_PSM(ch_idXML_spectra_fixed, false, true)
             aggregate_consensus_id(merge_PSM.out[0], true)
-            merge_PSM_fractions(aggregate_consensus_id.out[0].collect(), false, false)
+            merge_PSM_fractions(aggregate_consensus_id.out[0].groupTuple(), false, false)
             ch_merged_consensus_idXML = merge_PSM_fractions.out[0]
         } else {
             fix_idXMLSpectraDataPath(ch_idXML_individual, false, file("${projectDir}/src/SetIdXMLPrimaryMSRunPath.py"))
             // Merge search engine results and call consensus
-            merge_PSM(fix_idXMLSpectraDataPath.out[0].map{it[0]}.collect(), false, false)
+            merge_PSM(fix_idXMLSpectraDataPath.out[0]
+                .map { sample_name, idxml, search_engine -> [sample_name, idxml] }
+                .groupTuple(), false, false)
             aggregate_consensus_id(merge_PSM.out[0], false)
             ch_merged_consensus_idXML = aggregate_consensus_id.out[0]
         }
 
         if (params.skip_peptide_indexing) {
-            ch_indexed_consensus_idXML = ch_merged_consensus_idXML.map{ [it, 'consensus'] }
+            ch_indexed_consensus_idXML = ch_merged_consensus_idXML.map { sample_name, idxml -> [sample_name, idxml, 'consensus'] }
         } else {
-            index_peptide_aggregated(ch_merged_consensus_idXML.map{ [it, 'consensus'] }, file(params.decoy_database))
+            index_peptide_aggregated(ch_merged_consensus_idXML.map { sample_name, idxml -> [sample_name, idxml, 'consensus'] }, file(params.decoy_database))
             ch_indexed_consensus_idXML = index_peptide_aggregated.out[0]
         }
 

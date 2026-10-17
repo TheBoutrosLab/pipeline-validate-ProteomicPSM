@@ -2,16 +2,12 @@ input_csv:
   type: Path
   mode: r
   required: true
-  help: CSV containing search_engine and idXML columns.
+  help: CSV containing sample_name, search_engine, and idXML columns.
 output_dir:
   type: Path
   mode: w
   required: true
   help: Root output directory.
-sample_name:
-  type: String
-  required: true
-  help: Sample or plex name.
 decoy_database:
   type: Path
   mode: r

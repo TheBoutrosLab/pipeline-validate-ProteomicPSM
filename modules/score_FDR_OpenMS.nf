@@ -14,31 +14,33 @@ FLAG_MAPPER = [
 process score_FDR_OpenMS {
     container params.docker_image_openms
 
-    publishDir "${params.intermediate_file_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         enabled: params.save_intermediate_files,
         pattern: "*.idXML"
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
         tuple(
+            val(sample_name),
             file(input_idxml),
             val(search_engine)
         )
 
     output:
         tuple(
+            val(sample_name),
             file(output_idxml),
             val(search_engine)
         )
         file ".command.*"
 
     script:
-    output_idxml = "${params.sample_name}_${search_engine}_FDR.idXML"
+    output_idxml = "${sample_name}_${search_engine}_FDR.idXML"
     extra_args = getCommandArgs(PARAMETER_MAPPER, FLAG_MAPPER)
     """
     FalseDiscoveryRate \\

@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Support multiple samples or plexes in one run by requiring `sample_name` in every input CSV row and keeping validation, consensus, and outputs separate by sample ([#8](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/8)).
+
+### Fixed
+- Use the rank-based ConsensusID algorithm when Percolator is disabled, because the default PEP-based algorithm cannot score q-value inputs. Retain PEPMatrix when Percolator is enabled.
+
 ## [1.0.1] - 2026-10-11
 
 ### Fixed

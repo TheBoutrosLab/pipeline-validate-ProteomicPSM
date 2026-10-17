@@ -7,7 +7,7 @@ global:
 
 cases:
   - name: test-integration-OpenMS
-    message: Integration test using OpenMS
+    message: Fractionated integration test with multiple samples and search engines
     nf_script: main.nf
     nf_config: test/test_integration/test.config
     skip: false
@@ -28,7 +28,7 @@ cases:
     verbose: true
 
   - name: test-integration-merge-unfractionated
-    message: Integration test for unfractionated with multiple search engines to call consensus
+    message: Unfractionated integration test with multiple samples and search engines
     nf_script: main.nf
     nf_config: test/test_integration_merge_unfractionated/test.config
     skip: false

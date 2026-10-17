@@ -15,15 +15,15 @@
 
 ## Overview
 
-This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML search results. One run processes one label-free sample or one isobaric plex, with results from one or more search engines. It can index peptides against a target-decoy FASTA, rescore PSMs with [Percolator](https://doi.org/10.1038/nmeth1113), estimate PSM-level false discovery rates with OpenMS, filter identifications, and export mzTab. It can also combine search engines with ConsensusID, including results from multiple fractions.
+This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML search results. One run can process multiple label-free samples or isobaric plexes, each with results from one or more search engines. It can index peptides against a target-decoy FASTA, rescore PSMs with [Percolator](https://doi.org/10.1038/nmeth1113), estimate PSM-level false discovery rates with OpenMS, filter identifications, and export mzTab. It can also combine search engines with ConsensusID, including results from multiple fractions.
 
 ---
 
 ## How To Run
 
-1. Create a `.config` using the [template](config/template.config). Set `input_csv`, `output_dir`, `sample_name`, and `decoy_database`. Match `decoy_string` to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.
+1. Create a `.config` using the [template](config/template.config). Set `input_csv`, `output_dir`, and `decoy_database`. Match `decoy_string` to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.
 
-2. Create an input CSV using the [template](input/input.csv). List the idXML result for each search engine used on the same sample or plex. Use absolute idXML paths.
+2. Create an input CSV using the [template](input/input.csv). List the sample or plex name and idXML result for each search engine. Use absolute idXML paths.
 
 3. Initialize the Git submodules and run the pipeline with Nextflow, for example:
 
@@ -35,8 +35,6 @@ This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML s
 
    The supplied configuration template defaults to Docker. Use `-profile apptainer` or `-profile singularity` when appropriate for the execution environment. The `local` profile uses installed executables for development. The [`.env-template`](.env-template) records the Nextflow version used by the shared SBP configuration modules.
 
-> :warning: Run one sample or plex at a time. With consensus enabled, all idXML rows in the CSV are combined into one sample-level result.
-
 ---
 
 ## Pipeline Steps
@@ -45,7 +43,7 @@ This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML s
 
 The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage goes directly to PercolatorAdapter with the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.
 
-The right lane runs when `merge_consensus = true`. It aligns primary MS run paths, combines search engines with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With `fractionated = true`, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward.
+The right lane runs when `merge_consensus = true`. It groups inputs by sample or plex, aligns primary MS run paths, combines search engines within each group with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With `fractionated = true`, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward. ConsensusID uses `PEPMatrix` when Percolator provides posterior error probabilities and `ranks` when Percolator is disabled; `consensusid_algorithm` can override this choice.
 
 ---
 
@@ -53,19 +51,22 @@ The right lane runs when `merge_consensus = true`. It aligns primary MS run path
 
 ### Input CSV
 
-The CSV has one idXML file per search engine, with all rows belonging to the same sample or plex:
+The CSV has one idXML file per sample or plex and search engine:
 
 | Field | Required | Description |
 | ----- | -------- | ----------- |
+| `sample_name` | yes | Sample or plex name. Use letters, digits, dot, underscore, or hyphen; the first character must be a letter or digit. |
 | `search_engine` | yes | Search engine name, such as `Comet`, `Sage`, `MSFragger`, or `XTandem`. |
 | `idXML` | yes | Absolute path to that engine's idXML search result. |
 
 ```csv
-search_engine,idXML
-Comet,/data/SBP0001_Comet.idXML
-Sage,/data/SBP0001_Sage.idXML
-MSFragger,/data/SBP0001_MSFragger.idXML
+sample_name,search_engine,idXML
+SBP0001,Comet,/data/SBP0001_Comet.idXML
+SBP0001,Sage,/data/SBP0001_Sage.idXML
+SBP0002,MSFragger,/data/SBP0002_MSFragger.idXML
 ```
+
+The `sample_name` column is required even when the CSV contains only one sample. Duplicate sample/search-engine pairs are rejected.
 
 The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require `run_percolator = false`.
 
@@ -75,7 +76,6 @@ The idXML files must preserve target/decoy annotations for FDR estimation. If pe
 | --------- | ---- | ----------- |
 | `input_csv` | string(path) | Path to the input CSV. |
 | `output_dir` | string(path) | Root output directory. |
-| `sample_name` | string | Name of the one sample or plex processed in this run. |
 | `decoy_database` | string(path) | Target-decoy protein FASTA used for peptide indexing. Required by the configuration schema. |
 | `decoy_string` | string | Decoy protein prefix used by PeptideIndexer. Defaults to `DECOY_`. |
 | `enzyme` | string | Digestion enzyme for PeptideIndexer, IDFilter, and Percolator. Defaults to `Trypsin`. |
@@ -100,7 +100,7 @@ Additional OpenMS options and their pipeline parameter names are listed in [docs
 
 ## Outputs
 
-Final results are saved under `<output_dir>/validate-ProteomicPSM-<version>/<sample_name>/OpenMS-<version>/output/`:
+Each sample or plex has final results under `<output_dir>/validate-ProteomicPSM-<version>/<sample_name>/OpenMS-<version>/output/`:
 
 | Output | Description |
 | ------ | ----------- |
@@ -110,7 +110,7 @@ Final results are saved under `<output_dir>/validate-ProteomicPSM-<version>/<sam
 | `<sample_name>_consensus_filter.idXML` | Filtered consensus identifications; written when `merge_consensus = true`. |
 | `<sample_name>_consensus_filter.mzTab` | mzTab export of the filtered consensus result. |
 
-Intermediate idXML files are published under `intermediate/` when `save_intermediate_files = true`. Pipeline reports and process logs are stored in the corresponding timestamped `log-validate-ProteomicPSM-*` directory. Four NFTest integration cases are defined in [nftest.yml](nftest.yml), covering the standard workflow, skipped indexing, disabled Percolator, and unfractionated consensus.
+Intermediate idXML files are published under each sample’s `intermediate/` directory when `save_intermediate_files = true`. Pipeline reports are stored in a run-level timestamped `log-validate-ProteomicPSM-*` directory; process logs are grouped there by sample. Integration cases are defined in [nftest.yml](nftest.yml), including multi-sample coverage.
 
 ---
 
