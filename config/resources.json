@@ -287,6 +287,78 @@
                     "operand": 2
                 }
             }
+        },
+        "export_MSBooster_PIN": {
+            "cpus": {
+                "min": 1,
+                "fraction": 0.1,
+                "max": 4
+            },
+            "memory": {
+                "min": "4 GB",
+                "fraction": 0.25,
+                "max": "24 GB"
+            },
+            "retry_strategy": {
+                "memory": {
+                    "strategy": "exponential",
+                    "operand": 2
+                }
+            }
+        },
+        "run_MSBooster": {
+            "cpus": {
+                "min": 1,
+                "fraction": 0.1,
+                "max": 4
+            },
+            "memory": {
+                "min": "8 GB",
+                "fraction": 0.25,
+                "max": "24 GB"
+            },
+            "retry_strategy": {
+                "memory": {
+                    "strategy": "exponential",
+                    "operand": 2
+                }
+            }
+        },
+        "run_percolator_PIN": {
+            "cpus": {
+                "min": 1,
+                "fraction": 0.1,
+                "max": 4
+            },
+            "memory": {
+                "min": "4 GB",
+                "fraction": 0.25,
+                "max": "24 GB"
+            },
+            "retry_strategy": {
+                "memory": {
+                    "strategy": "exponential",
+                    "operand": 2
+                }
+            }
+        },
+        "import_percolator_POUT": {
+            "cpus": {
+                "min": 1,
+                "fraction": 0.1,
+                "max": 4
+            },
+            "memory": {
+                "min": "4 GB",
+                "fraction": 0.25,
+                "max": "24 GB"
+            },
+            "retry_strategy": {
+                "memory": {
+                    "strategy": "exponential",
+                    "operand": 2
+                }
+            }
         }
     }
 }

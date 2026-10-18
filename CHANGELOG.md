@@ -3,10 +3,15 @@
 ## [Unreleased]
 
 ### Added
+- Optional MSBooster feature extraction before direct Percolator rescoring using the FragPipe image and bundled DIA-NN, with a separate sample/fraction/mzML CSV and idXML score import; the OpenMS PercolatorAdapter route remains the default ([#9](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/9)).
 - Support multiple samples or plexes in one run by requiring `sample_name` in every input CSV row and keeping validation, consensus, and outputs separate by sample ([#8](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/8)).
 
 ### Fixed
+- Bypass OpenMS PSMFeatureExtractor in the MSBooster route, allowing DIA idXML inputs whose Percolator features are supplied by MSBooster.
 - Use the rank-based ConsensusID algorithm when Percolator is disabled, because the default PEP-based algorithm cannot score q-value inputs. Retain PEPMatrix when Percolator is enabled.
+
+### Tests
+- Keep the OpenMS integration case, add a matching MSBooster Percolator case and an MSFragger DIA MSBooster case with empty input templates; remove the skip-indexing, no-Percolator, and unfractionated cases.
 
 ## [1.0.1] - 2026-10-11
 

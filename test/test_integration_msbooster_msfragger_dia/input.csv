@@ -1,0 +1,3 @@
+sample_name,search_engine,idXML
+LFQ_Orbitrap_AIF_Ecoli_01,MSFragger,$TEST_DATA_DIR/ecoli_dia/search-ProteomicDIA/search-ProteomicDIA-0.1.0/ecoli_dia/output/MSFragger/LFQ_Orbitrap_AIF_Ecoli_01_MSFragger.idXML
+LFQ_Orbitrap_AIF_Ecoli_02,MSFragger,$TEST_DATA_DIR/ecoli_dia/search-ProteomicDIA/search-ProteomicDIA-0.1.0/ecoli_dia/output/MSFragger/LFQ_Orbitrap_AIF_Ecoli_02_MSFragger.idXML

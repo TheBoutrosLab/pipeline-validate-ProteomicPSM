@@ -3,6 +3,11 @@ input_csv:
   mode: r
   required: true
   help: CSV containing sample_name, search_engine, and idXML columns.
+input_mzml_csv:
+  type: Path
+  mode: r
+  required: false
+  help: CSV containing sample_name, fraction, and mzML columns; required for MSBooster.
 output_dir:
   type: Path
   mode: w
@@ -33,6 +38,23 @@ run_percolator:
   type: Bool
   required: false
   help: Run percolator.
+percolator_workflow:
+  type: String
+  required: false
+  help: Percolator route, openms (default) or msbooster.
+msbooster_params:
+  type: Path
+  mode: r
+  required: false
+  help: MSBooster prediction settings; defaults to the bundled DIA-NN configuration.
+fragpipe_version:
+  type: String
+  required: false
+  help: FragPipe image version, default 24.0.
+docker_image_fragpipe:
+  type: String
+  required: false
+  help: FragPipe image containing MSBooster, DIA-NN, and Percolator.
 save_intermediate_files:
   type: Bool
   required: false

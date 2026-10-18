@@ -1,0 +1,7 @@
+sample_name,fraction,mzML
+LFQ_Orbitrap_DDA_Ecoli_01,1,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_01_reindex_1.mzML
+LFQ_Orbitrap_DDA_Ecoli_01,2,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_01_reindex_2.mzML
+LFQ_Orbitrap_DDA_Ecoli_01,3,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_01_reindex_3.mzML
+LFQ_Orbitrap_DDA_Ecoli_02,1,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_02_reindex_1.mzML
+LFQ_Orbitrap_DDA_Ecoli_02,2,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_02_reindex_2.mzML
+LFQ_Orbitrap_DDA_Ecoli_02,3,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/reindex_mzml/LFQ_Orbitrap_DDA_Ecoli_02_reindex_3.mzML

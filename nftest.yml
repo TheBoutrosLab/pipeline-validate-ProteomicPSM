@@ -13,23 +13,16 @@ cases:
     skip: false
     verbose: true
 
-  - name: test-integration-skip-indexing
-    message: Integration test skipping peptide indexing
+  - name: test-integration-MSBooster
+    message: Fractionated integration test with multiple samples and MSBooster Percolator features
     nf_script: main.nf
-    nf_config: test/test_integration_skip_indexing/test.config
+    nf_config: test/test_integration_msbooster/test.config
     skip: false
     verbose: true
 
-  - name: test-integration-no-percolator
-    message: Integration test without running percolator
+  - name: test-integration-MSBooster-MSFragger-DIA
+    message: DIA MSFragger integration test with MSBooster Percolator features
     nf_script: main.nf
-    nf_config: test/test_integration_no_percolator/test.config
-    skip: false
-    verbose: true
-
-  - name: test-integration-merge-unfractionated
-    message: Unfractionated integration test with multiple samples and search engines
-    nf_script: main.nf
-    nf_config: test/test_integration_merge_unfractionated/test.config
+    nf_config: test/test_integration_msbooster_msfragger_dia/test.config
     skip: false
     verbose: true

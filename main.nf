@@ -5,6 +5,10 @@ include { printPrelogue } from "${projectDir}/modules/common"
 include { index_peptides; index_peptides as index_peptide_aggregated } from "${projectDir}/modules/index_peptides"
 include { extract_PSM_features } from "${projectDir}/modules/extract_PSM_features"
 include { score_PEP_percolator } from "${projectDir}/modules/score_PEP_percolator"
+include { export_MSBooster_PIN } from "${projectDir}/modules/export_MSBooster_PIN"
+include { run_MSBooster } from "${projectDir}/modules/run_MSBooster"
+include { run_percolator_PIN } from "${projectDir}/modules/run_percolator_PIN"
+include { import_percolator_POUT } from "${projectDir}/modules/import_percolator_POUT"
 include { score_FDR_OpenMS } from "${projectDir}/modules/score_FDR_OpenMS"
 include { switch_score_2_pep } from "${projectDir}/modules/switch_score_2_pep"
 include { fix_idXMLSpectraDataPath } from "${projectDir}/modules/fix_idXMLSpectraDataPath.nf"
@@ -19,11 +23,20 @@ include { export_mzTab; export_mzTab as export_mzTab_consensus } from "${project
 printPrelogue()
 
 workflow {
-    ich = Channel.fromPath(params.input_csv)
+    if (params.run_percolator && !(params.percolator_workflow in ['openms', 'msbooster'])) {
+        error "percolator_workflow must be 'openms' or 'msbooster'."
+    }
+    if (params.run_percolator && params.percolator_workflow == 'msbooster' && !params.msbooster_params) {
+        error "msbooster_params is required for percolator_workflow = 'msbooster'."
+    }
+    if (params.run_percolator && params.percolator_workflow == 'msbooster' && !params.input_mzml_csv) {
+        error "input_mzml_csv is required for percolator_workflow = 'msbooster'."
+    }
+    idxml_rows = Channel.fromPath(params.input_csv)
         .splitCsv(header:true)
         .ifEmpty { error "Input CSV '${params.input_csv}' has no data rows." }
         .collect()
-        .flatMap { rows ->
+        .map { rows ->
             if (!rows[0].containsKey('sample_name')) {
                 error "Input CSV '${params.input_csv}' is missing required sample_name column."
             }
@@ -44,6 +57,7 @@ workflow {
                 [sample_name, file(idxml), search_engine]
             }
         }
+    ich = idxml_rows.flatMap { it }
 
     // PeptideIndexer can be skipped if the input idXML is from OpenMS search engine adapters.
     // Because PeptideIndexer is called internally already.
@@ -55,16 +69,79 @@ workflow {
     }
 
     if (params.run_percolator == true) {
-        // OpenMS PSMFeatureExtractor has no Sage-specific feature handler.
-        indexed_by_engine = idXML_indexed.branch {
-            sage: it[2].equalsIgnoreCase('Sage')
-            supported: true
+        if (params.percolator_workflow == 'msbooster') {
+            // MSBooster supplies the Percolator features; PSMFeatureExtractor
+            // cannot process idXML files containing multiple ProteinID runs.
+            feature_idXML = idXML_indexed
+            mzML_by_sample = Channel.fromPath(params.input_mzml_csv)
+                .splitCsv(header:true)
+                .ifEmpty { error "mzML CSV '${params.input_mzml_csv}' has no data rows." }
+                .collect()
+                .map { [rows: it] }
+                .combine(idxml_rows.map { [rows: it] })
+                .flatMap { mzml_payload, search_payload ->
+                    def mzml_rows = mzml_payload.rows
+                    def search_rows = search_payload.rows
+                    def required_columns = ['sample_name', 'fraction', 'mzML']
+                    def missing_columns = required_columns.findAll { !mzml_rows[0].containsKey(it) }
+                    if (missing_columns) {
+                        error "mzML CSV '${params.input_mzml_csv}' is missing columns: ${missing_columns.join(', ')}."
+                    }
+                    def raw_by_sample = [:].withDefault { [] }
+                    def seen_fractions = [] as Set
+                    def seen_mzml_paths = [] as Set
+                    mzml_rows.each { row ->
+                        def sample_name = row.sample_name?.trim()
+                        def fraction = row.fraction?.trim()
+                        def mzml = row.mzML?.trim()
+                        if (!(sample_name ==~ /[A-Za-z0-9][A-Za-z0-9._-]*/)) {
+                            error "Invalid or missing sample_name in mzML CSV: '${sample_name}'."
+                        }
+                        if (!fraction || !mzml) {
+                            error "Each mzML CSV row needs fraction and mzML for sample '${sample_name}'."
+                        }
+                        if (!seen_fractions.add([sample_name, fraction])) {
+                            error "Duplicate mzML CSV row for sample '${sample_name}' and fraction '${fraction}'."
+                        }
+                        if (!seen_mzml_paths.add([sample_name, mzml])) {
+                            error "Duplicate mzML path for sample '${sample_name}': '${mzml}'."
+                        }
+                        raw_by_sample[sample_name] << [fraction, file(mzml)]
+                    }
+                    def search_samples = search_rows.collect { it[0] }.toSet()
+                    def missing_samples = search_samples - raw_by_sample.keySet()
+                    def extra_samples = raw_by_sample.keySet() - search_samples
+                    if (missing_samples || extra_samples) {
+                        error "mzML CSV sample names do not match input CSV (missing: ${missing_samples}; extra: ${extra_samples})."
+                    }
+                    raw_by_sample.collect { sample_name, fractions ->
+                        def ordered = fractions.sort { left, right ->
+                            def a = left[0].isInteger() ? left[0].toInteger() : null
+                            def b = right[0].isInteger() ? right[0].toInteger() : null
+                            (a != null && b != null) ? (a <=> b) : (left[0] <=> right[0])
+                        }
+                        [sample_name, ordered.collect { it[1] }]
+                    }
+                }
+            paired_input = feature_idXML
+                .map { sample_name, idxml, search_engine -> [sample_name, idxml, search_engine] }
+                .combine(mzML_by_sample, by: 0)
+            export_MSBooster_PIN(paired_input, file("${projectDir}/src/IdXMLPinBridge.py"))
+            run_MSBooster(export_MSBooster_PIN.out[0], file(params.msbooster_params))
+            run_percolator_PIN(run_MSBooster.out[0])
+            import_percolator_POUT(run_percolator_PIN.out[0], file("${projectDir}/src/IdXMLPinBridge.py"))
+            idXML_to_score_FDR = import_percolator_POUT.out[0]
+        } else {
+            // OpenMS PSMFeatureExtractor has no Sage-specific feature handler.
+            indexed_by_engine = idXML_indexed.branch {
+                sage: it[2].equalsIgnoreCase('Sage')
+                supported: true
+            }
+            extract_PSM_features(indexed_by_engine.supported)
+            feature_idXML = extract_PSM_features.out[0].mix(indexed_by_engine.sage)
+            score_PEP_percolator(feature_idXML)
+            idXML_to_score_FDR = score_PEP_percolator.out[0]
         }
-        extract_PSM_features(indexed_by_engine.supported)
-        score_PEP_percolator(extract_PSM_features.out[0].mix(indexed_by_engine.sage))
-
-        // FalseDiscoveryRate uses Percolator PEPs for every search engine.
-        idXML_to_score_FDR = score_PEP_percolator.out[0]
     } else {
         idXML_to_score_FDR = idXML_indexed
     }

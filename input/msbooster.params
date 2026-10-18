@@ -1,0 +1,5 @@
+useSpectra=true
+useRT=true
+useIM=false
+spectraModel=DIA-NN
+rtModel=DIA-NN
