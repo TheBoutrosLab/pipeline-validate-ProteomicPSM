@@ -1,0 +1,7 @@
+sample_name,search_engine,idXML
+LFQ_Orbitrap_DDA_Ecoli_01,Comet,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_01_Comet.idXML
+LFQ_Orbitrap_DDA_Ecoli_01,MSFragger,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_01_MSFragger.idXML
+LFQ_Orbitrap_DDA_Ecoli_01,Sage,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_01/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_01/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_01_Sage.idXML
+LFQ_Orbitrap_DDA_Ecoli_02,Comet,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_02_Comet.idXML
+LFQ_Orbitrap_DDA_Ecoli_02,MSFragger,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_02_MSFragger.idXML
+LFQ_Orbitrap_DDA_Ecoli_02,Sage,$TEST_DATA_DIR/ecoli_lfq/search-ProteomicMSMS/LFQ_Orbitrap_DDA_Ecoli_02/search-ProteomicMSMS-1.0.0/LFQ_Orbitrap_DDA_Ecoli_02/OpenMS-3.5.0/output/LFQ_Orbitrap_DDA_Ecoli_02_Sage.idXML

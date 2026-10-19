@@ -11,18 +11,19 @@
 process convert_idXML2pepXML {
     container params.docker_image_openms
 
-    publishDir "${params.intermediate_file_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         enabled: params.save_intermediate_files,
         pattern: '*.pepXML'
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
         tuple(
+            val(sample_name),
             file(idxml_file),
             val(search_engine)
         )
@@ -30,13 +31,14 @@ process convert_idXML2pepXML {
 
     output:
         tuple(
+            val(sample_name),
             file(pepxml_file),
             val(search_engine)
         )
         file '.command.*'
 
     script:
-    pepxml_file = "${params.sample_name}_${search_engine}.pepXML"
+    pepxml_file = "${sample_name}_${search_engine}.pepXML"
     """
     set -euo pipefail
 

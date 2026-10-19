@@ -38,17 +38,20 @@ FLAG_MAPPER = [
 process filter_PSM {
     container params.docker_image_openms
 
-    publishDir params.final_output_dir,
+    publishDir { params.run_protloom ?
+        "${params.final_output_dir}/${sample_name}/ProtLoom-${params.protloom_version}/output" :
+        "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy',
         pattern: "*.idXML"
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
         tuple(
+            val(sample_name),
             file(input_idxml),
             val(search_engine)
         )
@@ -59,11 +62,11 @@ process filter_PSM {
         path in_silico_digestion_fasta, stageAs: 'in_silico_digestion_fasta/*'
 
     output:
-        file output_idxml
+        tuple val(sample_name), file(output_idxml)
         file ".command.*"
 
     script:
-    output_idxml = "${params.sample_name}_${search_engine}_filter.idXML"
+    output_idxml = "${sample_name}_${search_engine}_filter.idXML"
     extra_args = getCommandArgs(PARAMETER_MAPPER, FLAG_MAPPER)
     if (whitelist_proteins.name.tokenize('/').last() != 'NO_FILE') {
         extra_args += " -whitelist:proteins ${whitelist_proteins}"

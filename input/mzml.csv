@@ -1,0 +1,4 @@
+sample_name,fraction,mzML
+sample_1,1,/path/to/sample_1_fraction_1.mzML
+sample_1,2,/path/to/sample_1_fraction_2.mzML
+sample_2,1,/path/to/sample_2_fraction_1.mzML

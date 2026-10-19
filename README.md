@@ -8,6 +8,7 @@
   - [Pipeline Steps](#pipeline-steps)
   - [Inputs](#inputs)
     - [Input CSV](#input-csv)
+    - [mzML CSV for MSBooster](#mzml-csv-for-msbooster)
     - [Config](#config)
   - [Outputs](#outputs)
   - [References](#references)
@@ -15,15 +16,15 @@
 
 ## Overview
 
-This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML search results. One run processes one label-free sample or one isobaric plex, with results from one or more search engines. It can index peptides against a target-decoy FASTA, rescore PSMs with [Percolator](https://doi.org/10.1038/nmeth1113), estimate PSM-level false discovery rates with OpenMS, filter identifications, and export mzTab. It can also combine search engines with ConsensusID, including results from multiple fractions.
+This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML search results. One run can process multiple label-free samples or isobaric plexes, each with results from one or more search engines. It can index peptides against a target-decoy FASTA, rescore PSMs with [Percolator](https://doi.org/10.1038/nmeth1113), estimate PSM-level false discovery rates with OpenMS, filter identifications, and export mzTab. It can also combine search engines with ConsensusID, including results from multiple fractions.
 
 ---
 
 ## How To Run
 
-1. Create a `.config` using the [template](config/template.config). Set `input_csv`, `output_dir`, `sample_name`, and `decoy_database`. Match `decoy_string` to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.
+1. Create a `.config` using the [template](config/template.config). Set `input_csv`, `output_dir`, and `decoy_database`. Match `decoy_string` to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.
 
-2. Create an input CSV using the [template](input/input.csv). List the idXML result for each search engine used on the same sample or plex. Use absolute idXML paths.
+2. Create an input CSV using the [template](input/input.csv). List the sample or plex name and idXML result for each search engine. Use absolute idXML paths. For MSBooster, also create an [mzML CSV](input/mzml.csv) with one row per fraction and set `input_mzml_csv`.
 
 3. Initialize the Git submodules and run the pipeline with Nextflow, for example:
 
@@ -35,17 +36,15 @@ This Nextflow DSL2 pipeline validates peptide-spectrum matches (PSMs) in idXML s
 
    The supplied configuration template defaults to Docker. Use `-profile apptainer` or `-profile singularity` when appropriate for the execution environment. The `local` profile uses installed executables for development. The [`.env-template`](.env-template) records the Nextflow version used by the shared SBP configuration modules.
 
-> :warning: Run one sample or plex at a time. With consensus enabled, all idXML rows in the CSV are combined into one sample-level result.
-
 ---
 
 ## Pipeline Steps
 
 ![Proteomic PSM validation workflow](img/flow-diagram.drawio.svg?raw=true)
 
-The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage goes directly to PercolatorAdapter with the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.
+The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage retains the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. The selected Percolator workflow then rescores the PSMs. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.
 
-The right lane runs when `merge_consensus = true`. It aligns primary MS run paths, combines search engines with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With `fractionated = true`, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward.
+The right lane runs when `merge_consensus = true`. It groups inputs by sample or plex, aligns primary MS run paths, combines search engines within each group with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With `fractionated = true`, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward. ConsensusID uses `PEPMatrix` when Percolator provides posterior error probabilities and `ranks` when Percolator is disabled; `consensusid_algorithm` can override this choice.
 
 ---
 
@@ -53,19 +52,35 @@ The right lane runs when `merge_consensus = true`. It aligns primary MS run path
 
 ### Input CSV
 
-The CSV has one idXML file per search engine, with all rows belonging to the same sample or plex:
+The CSV has one idXML file per sample or plex and search engine:
 
 | Field | Required | Description |
 | ----- | -------- | ----------- |
+| `sample_name` | yes | Sample or plex name. Use letters, digits, dot, underscore, or hyphen; the first character must be a letter or digit. |
 | `search_engine` | yes | Search engine name, such as `Comet`, `Sage`, `MSFragger`, or `XTandem`. |
 | `idXML` | yes | Absolute path to that engine's idXML search result. |
 
 ```csv
-search_engine,idXML
-Comet,/data/SBP0001_Comet.idXML
-Sage,/data/SBP0001_Sage.idXML
-MSFragger,/data/SBP0001_MSFragger.idXML
+sample_name,search_engine,idXML
+SBP0001,Comet,/data/SBP0001_Comet.idXML
+SBP0001,Sage,/data/SBP0001_Sage.idXML
+SBP0002,MSFragger,/data/SBP0002_MSFragger.idXML
 ```
+
+The `sample_name` column is required even when the CSV contains only one sample. Duplicate sample/search-engine pairs are rejected.
+
+### mzML CSV for MSBooster
+
+For MSBooster, provide a second CSV using `input_mzml_csv`. It lists each fraction once per sample; every search engine for that sample receives the same set of mzML files. Fraction labels must be unique within a sample. Numeric fractions are ordered numerically; other labels are ordered alphabetically.
+
+```csv
+sample_name,fraction,mzML
+SBP0001,1,/data/SBP0001_f01.mzML
+SBP0001,2,/data/SBP0001_f02.mzML
+SBP0002,1,/data/SBP0002_f01.mzML
+```
+
+The sample names in the two CSV files must match. Spectrum references in idXML must contain `scan=N` and identify MS2 scans in the corresponding mzML. When a scan number occurs in several fractions, `file_origin` or `id_merge_index` in the idXML must disambiguate it. Missing or ambiguous matches fail during PIN export.
 
 The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require `run_percolator = false`.
 
@@ -74,13 +89,27 @@ The idXML files must preserve target/decoy annotations for FDR estimation. If pe
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
 | `input_csv` | string(path) | Path to the input CSV. |
+| `input_mzml_csv` | string(path) | Path to the `sample_name,fraction,mzML` CSV, required for the MSBooster route. |
 | `output_dir` | string(path) | Root output directory. |
-| `sample_name` | string | Name of the one sample or plex processed in this run. |
 | `decoy_database` | string(path) | Target-decoy protein FASTA used for peptide indexing. Required by the configuration schema. |
-| `decoy_string` | string | Decoy protein prefix used by PeptideIndexer. Defaults to `DECOY_`. |
+| `decoy_string` | string | Decoy protein prefix used by PeptideIndexer. Defaults to `DECOY_`; must match `database.decoy_string` in the ProtLoom project YAML when ProtLoom is enabled. |
 | `enzyme` | string | Digestion enzyme for PeptideIndexer, IDFilter, and Percolator. Defaults to `Trypsin`. |
 | `skip_peptide_indexing` | bool | Skip PeptideIndexer when input idXML is already indexed. Defaults to `false`. |
 | `run_percolator` | bool | Rescore PSMs with PercolatorAdapter. Defaults to `true`. |
+| `percolator_workflow` | string | `openms` (default) runs PercolatorAdapter; `msbooster` exports PIN, adds predicted features with MSBooster, runs Percolator directly, and imports PEPs into idXML. |
+| `msbooster_params` | string(path) | MSBooster prediction settings. Defaults to [input/msbooster.params](input/msbooster.params), which uses DIA-NN. The pipeline supplies input PIN, mzML, and DIA-NN executable paths. |
+| `fragpipe_version` | string | FragPipe image version. Defaults to `24.0`. |
+| `docker_image_fragpipe` | string | Image containing MSBooster, DIA-NN, and Percolator. Defaults to `fcyucn/fragpipe:24.0`, as used by the protein quantification pipeline. |
+| `run_protloom` | bool | Run ProtLoom inference and FDR after MSBooster and Percolator. Defaults to `false`. |
+| `dataset_id` | string | Directory name for cohort-level ProtLoom outputs. Defaults to `cohort`. |
+| `export_easypqp_reports` | bool | Export `<dataset_id>-psm.tsv`, `<dataset_id>-peptides.tsv`, and exclusion counts after ProtLoom FDR. Defaults to `false`. |
+| `protloom_easypqp_fdr` | number | Maximum PSM and protein-group q-value for EasyPQP export. Defaults to `0.01`. |
+| `protloom_idxml_primary_score` | string | Primary score in ProtLoom-annotated idXML: `original` (default), `pep`, or `q_value` (`q-value` is also accepted). |
+| `protloom_idxml_unmatched_psms` | string | Handling for PSMs without mapped ProtLoom results: `remove` (default) or `keep`. |
+| `docker_image_protloom` | string | ProtLoom container image. Defaults to `ghcr.io/theboutroslab/protloom:0.2.3`. |
+| `protloom_project_yaml` | string(path) | ProtLoom project YAML with `database.output_fasta`, `database.output_entries_tsv`, `annotations`, and a `samples` entry mapping each CSV `sample_name` to an `annotation_id`. Required when ProtLoom is enabled. Paths in the YAML are relative to its location. |
+| `protloom_pt_order`, `protloom_pc_order` | string | Comma-separated protein-tier and peptide-class priorities. Required when ProtLoom is enabled. |
+| `protloom_enzyme` | string | ProtLoom cleavage rule name; defaults to `trypsin`. |
 | `percolator_post_processing_tdc` | bool | Enable Percolator target-decoy competition post-processing. Defaults to `true`. |
 | `merge_consensus` | bool | Combine search-engine results with ConsensusID. Defaults to `true`. |
 | `fractionated` | bool | Split fractionated idXML before consensus merging. Defaults to `false`. |
@@ -96,21 +125,37 @@ The idXML files must preserve target/decoy annotations for FDR estimation. If pe
 
 Additional OpenMS options and their pipeline parameter names are listed in [docs/params.rst](docs/params.rst).
 
+The MSBooster route uses the FragPipe image for MSBooster, DIA-NN prediction, and direct Percolator execution. It writes PEP, q-value, and SVM scores back to the original idXML PSMs. The original `openms` workflow remains available and is the default.
+
+When `run_protloom = true`, set `protloom_project_yaml` to the project YAML used to build the search database. The configuration setup loads and validates that YAML before the workflow starts. Its `database.output_fasta` and `database.output_entries_tsv` must point to the existing `buildDB` outputs. Each `samples` row must have a `sample_id` matching `sample_name` in the input CSV and an `annotation_id` listed under `annotations`. The YAML's `id_files` values are ignored: the pipeline inserts the idXML files produced during this run into per-task project manifests. All referenced FASTA, entries TSV, and GTF files are staged into the ProtLoom tasks. Database decoy and contaminant markers come from the YAML; set the pipeline's `decoy_string` to the same decoy marker. See [input/protloom-project.example.yaml](input/protloom-project.example.yaml) for the required fields.
+
+The pipeline passes unfiltered Percolator idXML with lower-is-better PEP scores directly to ProtLoom 0.2.3. One sample runs `localInfer --disable-ccs`. Multiple samples run `jointGraph` once, followed by `jointInfer --disable-ccs` for each sample. `computeFDR` runs after either inference path. Samples with multiple search engines use the consensus result; set `merge_consensus = true` for those inputs. The default container is `ghcr.io/theboutroslab/protloom:0.2.3`; set `docker_image_protloom` to override it.
+
 ---
 
 ## Outputs
 
-Final results are saved under `<output_dir>/validate-ProteomicPSM-<version>/<sample_name>/OpenMS-<version>/output/`:
+With `run_protloom = false`, each sample or plex has final OpenMS results under `<output_dir>/validate-ProteomicPSM-<version>/<sample_name>/OpenMS-<version>/output/`:
 
 | Output | Description |
 | ------ | ----------- |
 | `<sample_name>_<engine>_filter.idXML` | Search-engine identifications after PSM-level FDR estimation and IDFilter. |
+| `<sample_name>_<engine>_filter.idXML.sha512` | SHA-512 checksum of the filtered search-engine idXML. |
 | `<sample_name>_<engine>_filter.mzTab` | mzTab export of the filtered engine result. |
 | `<sample_name>_<engine>_idswitch_pep.idXML` | Unfiltered identifications with Percolator PEP restored as the active score; written when Percolator is enabled. |
 | `<sample_name>_consensus_filter.idXML` | Filtered consensus identifications; written when `merge_consensus = true`. |
+| `<sample_name>_consensus_filter.idXML.sha512` | SHA-512 checksum of the filtered consensus idXML. |
 | `<sample_name>_consensus_filter.mzTab` | mzTab export of the filtered consensus result. |
 
-Intermediate idXML files are published under `intermediate/` when `save_intermediate_files = true`. Pipeline reports and process logs are stored in the corresponding timestamped `log-validate-ProteomicPSM-*` directory. Four NFTest integration cases are defined in [nftest.yml](nftest.yml), covering the standard workflow, skipped indexing, disabled Percolator, and unfractionated consensus.
+With `run_protloom = true`, OpenMS FDR calculation is skipped because ProtLoom supplies q-values. Each sample has `<sample_name>/ProtLoom-<version>/output/` with `<sample_name>_groups.tsv`, `<sample_name>_peptides.tsv`, `<sample_name>_assignments.tsv`, `<sample_name>_run.json`, `<sample_name>_psm_fdr.tsv`, `<sample_name>_protein_group_fdr.tsv`, `<sample_name>_protloom.idXML` (annotated, before final filtering) and its `.sha512` checksum, `<sample_name>_ProtLoom_filter.idXML` and its `.sha512` checksum, and `<sample_name>_ProtLoom_filter.mzTab`. The final idXML is filtered with the same `IDFilter` settings as the OpenMS route, including `filter_psm_score_peptide` (default `0.01`). mzTab uses that final idXML; SHA-512 checksums cover both the annotated and final idXML files. Multi-sample runs additionally publish `<dataset_id>/ProtLoom-<version>/output/<dataset_id>-cohort_graph.json` and `<dataset_id>-cohort_manifest.json`. Set `dataset_id` to the desired cohort directory name (default `cohort`).
+
+Each `.sha512` file contains the SHA-512 digest and idXML filename in standard checksum format. It is generated from the bytes of the corresponding idXML file.
+
+Set `export_easypqp_reports = true` to publish cohort-wide `<dataset_id>-psm.tsv`, `<dataset_id>-peptides.tsv`, and `<dataset_id>-easypqp_export_summary.tsv` under `<dataset_id>/ProtLoom-<version>/output/` for EasyPQP library generation; export is disabled by default. The reports include target PSMs and protein groups with q-values at or below `protloom_easypqp_fdr` (default `0.01`). Since EasyPQP maps proteins by unmodified peptide sequence, the exporter excludes sequences assigned to different ProtLoom groups across the cohort and reports the excluded sequence and PSM counts in the summary. `Gene` uses the leading protein accession as a stable placeholder because the ProtLoom assignment table has no gene field. Supply the matching idXML and mzML files when running EasyPQP; the TSVs alone are filters and protein annotations, not spectra.
+
+The annotation step does not apply a q-value cutoff: every input PSM with a matching ProtLoom PSM and protein-group result is annotated, regardless of its q-value. PSMs without a mapped result are removed from the annotated file by default; set `protloom_idxml_unmatched_psms = 'keep'` to retain them there with their original scores and protein evidence. The final `IDFilter` input always contains only mapped PSMs, since unmatched hits have no ProtLoom q-value to filter. When keeping unmatched PSMs in the annotated file, the writer places matched and unmatched hits in separate identification runs so their score types remain accurate. Matched peptide hits carry `protein_tier`, `peptide_class`, `q_value`, `probability`, `protloom_pep` (1 − probability), and `protloom_group_id` metadata. Their protein evidence points to the ProtLoom leading protein. Protein hits carry group q-value, probability, and PEP metadata, and `ProteinIdentification` records each group's full protein membership. By default, matched peptide hits keep their original Percolator score as the primary score in the annotated file and matched protein hits use the ProtLoom group q-value. Set `protloom_idxml_primary_score = 'pep'` or `'q_value'` to use that ProtLoom score as the primary score for matched peptide and protein hits. When available, the previous hit score is saved under its original score-type name in hit metadata. Before final filtering, `IDScoreSwitcher` changes `pep` or `original` primary PSM scores to ProtLoom q-value; `q_value` goes directly to `IDFilter`.
+
+Intermediate idXML files are published under each sample’s `intermediate/` directory when `save_intermediate_files = true`. Pipeline reports are stored in a run-level timestamped `log-validate-ProteomicPSM-*` directory; process logs are grouped there by sample. [nftest.yml](nftest.yml) defines OpenMS and MSBooster multi-sample integration cases plus an MSFragger DIA case. Fill in the [DIA idXML CSV](test/test_integration_msbooster_msfragger_dia/input.csv) and [DIA mzML CSV](test/test_integration_msbooster_msfragger_dia/mzml.csv) before running the DIA case.
 
 ---
 

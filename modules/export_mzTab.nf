@@ -5,20 +5,22 @@
 process export_mzTab {
     container params.docker_image_openms
 
-    publishDir params.final_output_dir,
+    publishDir { params.run_protloom ?
+        "${params.final_output_dir}/${sample_name}/ProtLoom-${params.protloom_version}/output" :
+        "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy',
         pattern: '*.mzTab'
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
-        file idXML_file
+        tuple val(sample_name), file(idXML_file)
 
     output:
-        file mzTab_file
+        tuple val(sample_name), file(mzTab_file)
         file ".command.*"
 
     script:

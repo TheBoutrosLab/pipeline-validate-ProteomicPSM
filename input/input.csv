@@ -1,4 +1,5 @@
-search_engine,idXML
-Comet,/path/to/sample_1_Comet.idXML
-XTandem,/path/to/sample_1_XTandem.idXML
-MSFragger,/path/to/sample_1_MSFragger.idXML
+sample_name,search_engine,idXML
+sample_1,Comet,/path/to/sample_1_Comet.idXML
+sample_1,XTandem,/path/to/sample_1_XTandem.idXML
+sample_1,MSFragger,/path/to/sample_1_MSFragger.idXML
+sample_2,Comet,/path/to/sample_2_Comet.idXML

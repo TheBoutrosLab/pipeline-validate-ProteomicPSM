@@ -31,23 +31,24 @@ FLAG_MAPPER = [
 process run_PeptideProphet {
     container params.docker_image_philosopher
 
-    publishDir params.final_output_dir,
+    publishDir { "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy',
         enabled: params.save_peptideprophet_pepxml,
         pattern: '*_PeptideProphet.pepXML'
 
-    publishDir "${params.intermediate_file_dir}/${task.process.replace(':', '/')}/",
+    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
         mode: 'copy',
         enabled: params.save_intermediate_files && !(params.save_peptideprophet_pepxml),
         pattern: '*_PeptideProphet.pepXML'
 
-    publishDir "${params.process_log_dir}/${task.process.replace(':', '/')}-${task.index}/",
+    publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}-${task.index}/" },
         mode: 'copy',
         pattern: '.command.*',
         saveAs: { "log${file(it).name}" }
 
     input:
         tuple(
+            val(sample_name),
             file(input_pepxml),
             val(search_engine)
         )
@@ -55,13 +56,14 @@ process run_PeptideProphet {
 
     output:
         tuple(
+            val(sample_name),
             file(output_pepxml),
             val(search_engine)
         )
         file ".command.*"
 
     script:
-    output_pepxml = "${params.sample_name}_${search_engine}_PeptideProphet.pepXML"
+    output_pepxml = "${sample_name}_${search_engine}_PeptideProphet.pepXML"
     extra_args = getCommandArgs(PARAMETER_MAPPER, FLAG_MAPPER)
     """
     philosopher workspace --init
