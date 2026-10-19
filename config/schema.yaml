@@ -55,6 +55,57 @@ docker_image_fragpipe:
   type: String
   required: false
   help: FragPipe image containing MSBooster, DIA-NN, and Percolator.
+run_protloom:
+  type: Bool
+  required: false
+  help: Run ProtLoom inference and FDR after MSBooster and Percolator.
+dataset_id:
+  type: String
+  required: false
+  help: Dataset directory name for cohort-level ProtLoom outputs; default cohort.
+export_easypqp_reports:
+  type: Bool
+  required: false
+  help: Export dataset-prefixed psm.tsv and peptides.tsv for EasyPQP after ProtLoom FDR; default false.
+protloom_version:
+  type: String
+  required: false
+  help: ProtLoom version used in output paths.
+docker_image_protloom:
+  type: String
+  required: false
+  help: Container image built from the ProtLoom repository.
+protloom_project_yaml:
+  type: Path
+  mode: r
+  required: false
+  help: ProtLoom project YAML with database outputs, annotations, and sample-to-annotation mappings; required when run_protloom is true.
+protloom_pt_order:
+  type: String
+  required: false
+  allow_empty: true
+  help: Comma-separated protein-tier order for ProtLoom.
+protloom_pc_order:
+  type: String
+  required: false
+  allow_empty: true
+  help: Comma-separated peptide-class order for ProtLoom.
+protloom_enzyme:
+  type: String
+  required: false
+  help: ProtLoom cleavage rule name, default trypsin.
+protloom_easypqp_fdr:
+  type: Number
+  required: false
+  help: Maximum ProtLoom PSM and protein-group q-value for EasyPQP report export; default 0.01.
+protloom_idxml_primary_score:
+  type: String
+  required: false
+  help: Primary score in ProtLoom-annotated idXML, original (default), pep, or q_value.
+protloom_idxml_unmatched_psms:
+  type: String
+  required: false
+  help: Handling for PSMs without mapped ProtLoom results, remove (default) or keep.
 save_intermediate_files:
   type: Bool
   required: false

@@ -5,6 +5,7 @@
 */
 
 process fix_idXMLSpectraDataPath {
+    containerOptions params.project_script_mount_options
     container params.docker_image_pyopenms
 
     publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
@@ -24,7 +25,6 @@ process fix_idXMLSpectraDataPath {
             val(search_engine)
         )
         val fractionated
-        path helper_script
 
     output:
         tuple(
@@ -42,7 +42,7 @@ process fix_idXMLSpectraDataPath {
     }
 
     """
-    python ${helper_script} \\
+    python ${projectDir}/src/SetIdXMLPrimaryMSRunPath.py \\
         --input-path ${input_idxml} \\
         --output-path ${output_idxml} \\
         --mzML ${sample_name}_merged.mzML

@@ -270,6 +270,24 @@
                 }
             }
         },
+        "filter_PSM_protloom": {
+            "cpus": {
+                "min": 1,
+                "fraction": 0.1,
+                "max": 4
+            },
+            "memory": {
+                "min": "4 GB",
+                "fraction": 0.25,
+                "max": "24 GB"
+            },
+            "retry_strategy": {
+                "memory": {
+                    "strategy": "exponential",
+                    "operand": 2
+                }
+            }
+        },
         "export_mzTab_consensus": {
             "cpus": {
                 "min": 1,
@@ -359,6 +377,26 @@
                     "operand": 2
                 }
             }
+        },
+        "run_ProtLoom_localInfer": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}
+        },
+        "run_ProtLoom_jointGraph": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}
+        },
+        "run_ProtLoom_jointInfer": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}
+        },
+        "run_ProtLoom_computeFDR": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}
+        },
+        "export_EasyPQP_reports": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}
         }
     }
 }

@@ -5,7 +5,9 @@
 process export_mzTab {
     container params.docker_image_openms
 
-    publishDir { "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
+    publishDir { params.run_protloom ?
+        "${params.final_output_dir}/${sample_name}/ProtLoom-${params.protloom_version}/output" :
+        "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy',
         pattern: '*.mzTab'
 
