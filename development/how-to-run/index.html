@@ -86,7 +86,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">How To Run</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/a63942d46eb84a7e2f097d8601c06135a9b7f33a/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -97,10 +97,10 @@
                 <h2 id="how-to-run">How To Run</h2>
 <ol>
 <li>
-<p>Create a <code>.config</code> using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/config/template.config">template</a>. Set <code>input_csv</code>, <code>output_dir</code>, and <code>decoy_database</code>. Match <code>decoy_string</code> to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.</p>
+<p>Create a <code>.config</code> using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/a63942d46eb84a7e2f097d8601c06135a9b7f33a/config/template.config">template</a>. Set <code>input_csv</code>, <code>output_dir</code>, and <code>decoy_database</code>. Match <code>decoy_string</code> to the target-decoy FASTA and review the indexing, Percolator, filtering, and consensus settings.</p>
 </li>
 <li>
-<p>Create an input CSV using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/input/input.csv">template</a>. List the sample or plex name and idXML result for each search engine. Use absolute idXML paths. For MSBooster, also create an <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/input/mzml.csv">mzML CSV</a> with one row per fraction and set <code>input_mzml_csv</code>.</p>
+<p>Create an input CSV using the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/a63942d46eb84a7e2f097d8601c06135a9b7f33a/input/input.csv">template</a>. List the sample or plex name and idXML result for each search engine. Use absolute idXML paths. For MSBooster, also create an <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/a63942d46eb84a7e2f097d8601c06135a9b7f33a/input/mzml.csv">mzML CSV</a> with one row per fraction and set <code>input_mzml_csv</code>.</p>
 </li>
 <li>
 <p>Initialize the Git submodules and run the pipeline with Nextflow, for example:</p>
@@ -110,7 +110,7 @@
    export NXF_VER=24.10.6
    export NXF_SYNTAX_PARSER=v1
    nextflow run TheBoutrosLab/pipeline-validate-ProteomicPSM -r &lt;version&gt; -c config/my-run.config</code></p>
-<p>The supplied configuration template defaults to Docker. Use <code>-profile apptainer</code> or <code>-profile singularity</code> when appropriate for the execution environment. The <code>local</code> profile uses installed executables for development. The <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/.env-template"><code>.env-template</code></a> records the Nextflow version used by the shared SBP configuration modules.</p>
+<p>The supplied configuration template defaults to Docker. Use <code>-profile apptainer</code> or <code>-profile singularity</code> when appropriate for the execution environment. The <code>local</code> profile uses installed executables for development. The <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/a63942d46eb84a7e2f097d8601c06135a9b7f33a/.env-template"><code>.env-template</code></a> records the Nextflow version used by the shared SBP configuration modules.</p>
 <hr />
               
             </div>
