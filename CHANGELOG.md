@@ -16,7 +16,6 @@
 - Support multiple samples or plexes in one run by requiring `sample_name` in every input CSV row and keeping validation, consensus, and outputs separate by sample ([#8](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/8)).
 
 ### Fixed
-- Remove the unsupported Tests section so release preparation can parse the unreleased entry.
 - Preserve replaced idXML scores under their original score-type names without extra score-type or orientation metadata.
 - Use pyOpenMS 3.5-compatible peptide-list and protein-group APIs when writing ProtLoom-annotated idXML.
 - Skip per-engine and consensus OpenMS FDR calculation when ProtLoom is enabled; use ProtLoom q-values for final `IDFilter` and mzTab export.
