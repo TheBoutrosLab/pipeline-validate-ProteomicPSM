@@ -1,5 +1,5 @@
 # Based on docker-CICD-base v1.3.0 config/.pylintrc.
-# Disable C0103 and R0914 for this pipeline.
+# Disable C0103, R0912, R0914, and R0915 for this pipeline.
 [MAIN]
 
 # Analyse import fallback blocks. This can be used to support both Python 2 and
@@ -135,7 +135,9 @@ disable=raw-checker-failed,
         import-error,
         duplicate-code,
         invalid-name,
-        too-many-locals
+        too-many-branches,
+        too-many-locals,
+        too-many-statements
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

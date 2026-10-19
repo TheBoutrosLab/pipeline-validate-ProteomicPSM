@@ -18,12 +18,14 @@ BASE_FEATURES = [
 
 
 def load_idxml(path):
+    """Load protein and peptide identifications from an idXML file."""
     proteins, peptides = [], oms.PeptideIdentificationList()
     oms.IdXMLFile().load(str(path), proteins, peptides)
     return proteins, peptides
 
 
 def scan_number(reference):
+    """Extract exactly one scan number from a spectrum reference."""
     matches = re.findall(r"(?:^|\s)scan=(\d+)(?=\s|$)", reference)
     if len(matches) != 1:
         raise ValueError(f"Spectrum reference needs exactly one scan=N: {reference!r}")
@@ -31,6 +33,7 @@ def scan_number(reference):
 
 
 def mzml_scans(path):
+    """Collect MS2 scan numbers from an mzML file."""
     scans = set()
     for _, element in ET.iterparse(path, events=("end",)):
         if element.tag.rsplit("}", 1)[-1] == "spectrum":
@@ -43,14 +46,17 @@ def mzml_scans(path):
 
 
 def as_text(value):
+    """Decode pyOpenMS byte strings while preserving other values as text."""
     return value.decode() if isinstance(value, bytes) else str(value)
 
 
 def meta_text(pid, key):
+    """Read an optional peptide identification metadata value as text."""
     return as_text(pid.getMetaValue(key)) if pid.metaValueExists(key) else ""
 
 
 def match_mzml(pid, scan, paths, scan_sets, source_stems):
+    """Find the raw file for a scan, requiring provenance if scans repeat."""
     candidates = [index for index, scans in enumerate(scan_sets) if scan in scans]
     if not candidates:
         raise ValueError(f"Scan {scan} in idXML is absent from the sample's mzML files")
@@ -70,10 +76,13 @@ def match_mzml(pid, scan, paths, scan_sets, source_stems):
                        if paths[candidate].stem.lower() == source_stems[index]]
             if len(matches) == 1:
                 return matches[0]
-    raise ValueError(f"Scan {scan} occurs in multiple mzML files without an unambiguous file origin")
+    raise ValueError(
+        f"Scan {scan} occurs in multiple mzML files without an unambiguous file origin"
+    )
 
 
 def export(args):
+    """Export idXML hits to per-run PIN files and record their original positions."""
     proteins, peptides = load_idxml(args.idxml)
     if not peptides:
         raise ValueError("Input idXML has no peptide identifications")
@@ -103,7 +112,9 @@ def export(args):
             file_identifier += f"|{merge_index}"
         for hit_index, hit in enumerate(pid.getHits()):
             if not hit.getPeptideEvidences() or not hit.metaValueExists("target_decoy"):
-                raise ValueError(f"PSM {pid_index}:{hit_index} lacks protein or target/decoy annotation")
+                raise ValueError(
+                    f"PSM {pid_index}:{hit_index} lacks protein or target/decoy annotation"
+                )
             charge = hit.getCharge()
             if charge < 1:
                 raise ValueError(f"PSM {pid_index}:{hit_index} has invalid charge {charge}")
@@ -116,11 +127,18 @@ def export(args):
     for protein in proteins:
         search = protein.getSearchParameters()
         if search.metaValueExists("extra_features"):
-            extra.update(part.strip() for part in as_text(search.getMetaValue("extra_features")).split(",") if part.strip())
-    features = BASE_FEATURES[:9] + [f"charge{z}" for z in range(min(charges), max(charges) + 1)] + BASE_FEATURES[9:] + sorted(extra - set(BASE_FEATURES)) + ["Peptide", "Proteins"]
+            extra.update(
+                part.strip()
+                for part in as_text(search.getMetaValue("extra_features")).split(",")
+                if part.strip()
+            )
+    features = (BASE_FEATURES[:9]
+                + [f"charge{z}" for z in range(min(charges), max(charges) + 1)]
+                + BASE_FEATURES[9:] + sorted(extra - set(BASE_FEATURES))
+                + ["Peptide", "Proteins"])
     oms.PercolatorInfile.store("openms.pin", peptides, [feature.encode() for feature in features],
                               args.enzyme.encode(), min(charges), max(charges))
-    with open("openms.pin", newline="") as source:
+    with open("openms.pin", newline="", encoding="utf-8") as source:
         reader = csv.DictReader(source, delimiter="\t")
         rows = list(reader)
         fields = reader.fieldnames
@@ -131,13 +149,18 @@ def export(args):
         if None in row:
             row["Proteins"] = ";".join([row["Proteins"]] + row.pop(None))
     if len(rows) != len(locations):
-        raise ValueError(f"OpenMS exported {len(rows)} PIN rows for {len(locations)} PSMs; cannot preserve the idXML mapping")
+        raise ValueError(
+            f"OpenMS exported {len(rows)} PIN rows for {len(locations)} PSMs; "
+            "cannot preserve the idXML mapping"
+        )
     include_file_name = "FileName" in fields
     fields = [field for field in fields if field != "FileName"]
     fields = fields[:-1] + ["log10_evalue", fields[-1]]
     mapping = []
     rows_by_run = {index: [] for index in range(len(paths))}
-    for rank, (row, (pid_index, hit_index, scan, charge, score, higher, run_index, file_identifier)) in enumerate(zip(rows, locations), 1):
+    for rank, (row, location) in enumerate(zip(rows, locations), 1):
+        (pid_index, hit_index, scan, charge, score, higher,
+         run_index, file_identifier) = location
         if int(row["ScanNr"]) != scan:
             raise ValueError("OpenMS PIN order or scan numbers differ from the idXML")
         if include_file_name and row.pop("FileName") != file_identifier:
@@ -152,31 +175,35 @@ def export(args):
     for run_index, run_rows in rows_by_run.items():
         if not run_rows:
             continue
-        with open(f"run_{run_index + 1:02d}.pin", "w", newline="") as output:
+        with open(f"run_{run_index + 1:02d}.pin", "w", newline="", encoding="utf-8") as output:
             writer = csv.DictWriter(output, fieldnames=fields, delimiter="\t", lineterminator="\n")
             writer.writeheader()
             writer.writerows(run_rows)
-    with open(args.mapping, "w", newline="") as output:
+    with open(args.mapping, "w", newline="", encoding="utf-8") as output:
         writer = csv.writer(output, delimiter="\t")
         writer.writerow(("SpecId", "pid_index", "hit_index"))
         writer.writerows(mapping)
 
 
 def integrate(args):
+    """Write Percolator scores into their original idXML hits."""
     proteins, peptides = load_idxml(args.idxml)
-    with open(args.mapping, newline="") as source:
+    with open(args.mapping, newline="", encoding="utf-8") as source:
         mapping = {row["SpecId"]: (int(row["pid_index"]), int(row["hit_index"]))
                    for row in csv.DictReader(source, delimiter="\t")}
     results = {}
     for filename in (args.target, args.decoy):
-        with open(filename, newline="") as source:
+        with open(filename, newline="", encoding="utf-8") as source:
             for row in csv.DictReader(source, delimiter="\t"):
                 identifier = row["PSMId"]
                 if identifier not in mapping:
                     raise ValueError(f"Percolator returned unknown PSMId {identifier!r}")
                 if identifier in results:
                     raise ValueError(f"Percolator returned duplicate PSMId {identifier!r}")
-                results[identifier] = (float(row["score"]), float(row["q-value"]), float(row["posterior_error_prob"]))
+                results[identifier] = (
+                    float(row["score"]), float(row["q-value"]),
+                    float(row["posterior_error_prob"])
+                )
     by_pid = {}
     for identifier, (pid_index, hit_index) in mapping.items():
         by_pid.setdefault(pid_index, []).append((identifier, hit_index))
@@ -197,9 +224,8 @@ def integrate(args):
         pid.setScoreType("Posterior Error Probability")
         pid.setHigherScoreBetter(False)
         peptides[pid_index] = pid
-    for pid_index in range(len(peptides)):
+    for pid_index, pid in enumerate(peptides):
         if pid_index not in by_pid:
-            pid = peptides[pid_index]
             pid.setScoreType("Posterior Error Probability")
             pid.setHigherScoreBetter(False)
             peptides[pid_index] = pid
@@ -207,6 +233,7 @@ def integrate(args):
 
 
 def main():
+    """Parse command-line options and run the requested conversion."""
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
     exp = sub.add_parser("export")

@@ -7,6 +7,7 @@ from pathlib import Path
 
 
 def main():
+    """Write the SHA-512 digest beside the requested idXML file."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("idxml", type=Path)
     args = parser.parse_args()

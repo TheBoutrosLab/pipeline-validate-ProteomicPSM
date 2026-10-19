@@ -11,11 +11,13 @@ import pyopenms as oms
 
 
 def string(value):
+    """Decode pyOpenMS byte strings while preserving other values as text."""
     return value.decode() if isinstance(value, bytes) else str(value)
 
 
 def rows(path, required):
-    with open(path, newline="") as handle:
+    """Read a TSV and verify its required columns."""
+    with open(path, newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle, delimiter="\t")
         missing = set(required) - set(reader.fieldnames or [])
         if missing:
@@ -24,14 +26,17 @@ def rows(path, required):
 
 
 def key(native_id, sequence, charge):
+    """Build the key used to match ProtLoom and idXML PSMs."""
     return native_id, sequence, int(charge)
 
 
 def protloom_score(row, mode):
+    """Select the ProtLoom PEP or q-value for a primary score."""
     return 1.0 - float(row["probability"]) if mode == "pep" else float(row["q_value"])
 
 
 def run(args):
+    """Annotate idXML peptide and protein identifications from ProtLoom tables."""
     groups = {}
     for row in rows(args.groups, ("group_id", "leading_protein", "protein_members",
                                   "protein_tier", "q_value", "probability")):
@@ -91,7 +96,8 @@ def run(args):
     for peptide in peptides:
         original = oms.PeptideIdentification(peptide) if args.unmatched_psms == "keep" else None
         original_hits = original.getHits() if original is not None else []
-        native_id = string(peptide.getMetaValue("spectrum_reference")) if peptide.metaValueExists("spectrum_reference") else ""
+        native_id = (string(peptide.getMetaValue("spectrum_reference"))
+                     if peptide.metaValueExists("spectrum_reference") else "")
         run_id = string(peptide.getIdentifier())
         if run_id not in runs:
             raise ValueError(f"PeptideIdentification references unknown run {run_id}")
@@ -135,12 +141,15 @@ def run(args):
             used_groups[run_id].add(group_id)
             matched_hits += 1
         if selected:
-            annotated = oms.PeptideIdentification(peptide) if args.unmatched_psms == "keep" else peptide
+            annotated = (oms.PeptideIdentification(peptide)
+                         if args.unmatched_psms == "keep" else peptide)
             annotated.setHits(selected)
             if args.unmatched_psms == "keep":
                 annotated.setIdentifier(protloom_run_ids[run_id])
             if args.primary_score != "original":
-                annotated.setScoreType("ProtLoom PEP" if args.primary_score == "pep" else "ProtLoom q-value")
+                annotated.setScoreType(
+                    "ProtLoom PEP" if args.primary_score == "pep" else "ProtLoom q-value"
+                )
                 annotated.setHigherScoreBetter(False)
                 annotated.setSignificanceThreshold(1.0)
             retained.push_back(annotated)
@@ -181,9 +190,12 @@ def run(args):
         for group_id in sorted(used_groups[run_id]):
             group, members = groups[group_id]
             for accession in members:
-                hit = oms.ProteinHit(old_hits[accession]) if accession in old_hits else oms.ProteinHit()
+                hit = (oms.ProteinHit(old_hits[accession])
+                       if accession in old_hits else oms.ProteinHit())
                 if args.primary_score != "original" and accession in old_hits:
-                    hit.setMetaValue(original_protein_score_type or "original_primary_score", hit.getScore())
+                    hit.setMetaValue(
+                        original_protein_score_type or "original_primary_score", hit.getScore()
+                    )
                 hit.setAccession(accession)
                 hit.setScore(protloom_score(group, args.primary_score))
                 hit.setMetaValue("q_value", float(group["q_value"]))
@@ -211,12 +223,14 @@ def run(args):
         oms.IdXMLFile().store(str(args.matched_output), matched_proteins, matched_only)
     else:
         shutil.copyfile(args.output, args.matched_output)
-    print(f"Annotated {matched_hits} PSMs and {sum(map(len, used_groups.values()))} protein groups; "
+    group_count = sum(map(len, used_groups.values()))
+    print(f"Annotated {matched_hits} PSMs and {group_count} protein groups; "
           f"{unmatched_hits} unmatched PSMs "
           f"{'kept' if args.unmatched_psms == 'keep' else 'removed'}")
 
 
 def main():
+    """Parse command-line options and annotate the requested idXML file."""
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("idxml", "psms", "groups", "assignments", "output"):
         parser.add_argument(f"--{name}", required=True, type=Path)

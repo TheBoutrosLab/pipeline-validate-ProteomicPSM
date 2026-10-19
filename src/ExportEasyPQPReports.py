@@ -11,7 +11,8 @@ from IdXMLPinBridge import as_text, load_idxml, meta_text, mzml_scans, scan_numb
 
 
 def read_rows(path, required):
-    with Path(path).open(newline="") as handle:
+    """Read a TSV and verify its required columns."""
+    with Path(path).open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle, delimiter="\t")
         missing = set(required) - set(reader.fieldnames or ())
         if missing:
@@ -20,17 +21,20 @@ def read_rows(path, required):
 
 
 def write_rows(path, fields, rows):
-    with Path(path).open("w", newline="") as handle:
+    """Write rows to a UTF-8 TSV file."""
+    with Path(path).open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, delimiter="\t", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
 
 def psm_key(native_id, unimod_sequence, charge):
+    """Build a key shared by ProtLoom PSM rows and idXML hits."""
     return native_id, unimod_sequence, int(charge)
 
 
 def matching_psm_index(candidates, rt, mz, sample_name, key):
+    """Find the only PSM with matching spectrum coordinates, if any."""
     matching = [index for index, (row, _, _) in enumerate(candidates)
                 if abs(float(row["rt"]) - rt) < 0.001
                 and abs(float(row["mz"]) - mz) < 0.0001]
@@ -40,6 +44,7 @@ def matching_psm_index(candidates, rt, mz, sample_name, key):
 
 
 def match_raw_file(pid, scan, paths, source_stems, scan_cache):
+    """Find a PSM's mzML file from provenance or an unambiguous scan number."""
     if len(paths) == 1:
         return paths[0]
     for key in ("base_name", "file_origin"):
@@ -70,6 +75,7 @@ def match_raw_file(pid, scan, paths, source_stems, scan_cache):
 
 
 def export(manifest, threshold, output_prefix):
+    """Export cohort-level EasyPQP filters from ProtLoom result tables."""
     assignments = defaultdict(set)
     selected = []
     accepted_psms = 0
@@ -83,7 +89,8 @@ def export(manifest, threshold, output_prefix):
         for path in paths:
             if "." in path.stem:
                 raise ValueError(
-                    f"EasyPQP splits Spectrum on dots; mzML run name cannot contain dots: {path.name}"
+                    "EasyPQP splits Spectrum on dots; "
+                    f"mzML run name cannot contain dots: {path.name}"
                 )
             if path.name in seen_raw_names:
                 raise ValueError(f"mzML basename is repeated across samples: {path.name}")
@@ -114,7 +121,9 @@ def export(manifest, threshold, output_prefix):
             if assignment is None:
                 raise ValueError(f"No ProtLoom assignment for {sample_name}: {species}")
             if assignment["unmodified_sequence"] != row["unmodified_sequence"]:
-                raise ValueError(f"ProtLoom peptide sequences disagree for {sample_name}: {species}")
+                raise ValueError(
+                    f"ProtLoom peptide sequences disagree for {sample_name}: {species}"
+                )
             group_id = assignment["group_id"]
             if group_id not in groups:
                 continue
@@ -206,6 +215,7 @@ def export(manifest, threshold, output_prefix):
 
 
 def main():
+    """Parse command-line options and write the requested EasyPQP reports."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--fdr", type=float, default=0.01)
