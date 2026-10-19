@@ -86,7 +86,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Pipeline Steps</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/3e3b3c70c31223d65b96c4735a663d84a28dbd6e/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -96,8 +96,8 @@
               
                 <h2 id="pipeline-steps">Pipeline Steps</h2>
 <p><img alt="Proteomic PSM validation workflow" src="../img/flow-diagram.drawio.svg?raw=true" /></p>
-<p>The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage goes directly to PercolatorAdapter with the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.</p>
-<p>The right lane runs when <code>merge_consensus = true</code>. It aligns primary MS run paths, combines search engines with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With <code>fractionated = true</code>, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward.</p>
+<p>The left lane validates each search-engine idXML. Peptide indexing and Percolator rescoring are optional. Sage retains the features already in its idXML; Comet, MSFragger, and X!Tandem use PSMFeatureExtractor first. The selected Percolator workflow then rescores the PSMs. FalseDiscoveryRate, IDFilter, and MzTabExporter produce the filtered engine results.</p>
+<p>The right lane runs when <code>merge_consensus = true</code>. It groups inputs by sample or plex, aligns primary MS run paths, combines search engines within each group with ConsensusID, and performs consensus FDR estimation, filtering, and mzTab export. With <code>fractionated = true</code>, the pipeline splits results by fraction before consensus and merges fraction-level consensus results afterward. ConsensusID uses <code>PEPMatrix</code> when Percolator provides posterior error probabilities and <code>ranks</code> when Percolator is disabled; <code>consensusid_algorithm</code> can override this choice.</p>
 <hr />
               
             </div>

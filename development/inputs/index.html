@@ -57,6 +57,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#input-csv">Input CSV</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#mzml-csv-for-msbooster">mzML CSV for MSBooster</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#config">Config</a>
     </li>
     </ul>
@@ -90,7 +92,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Inputs</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/3e3b3c70c31223d65b96c4735a663d84a28dbd6e/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -100,7 +102,7 @@
               
                 <h2 id="inputs">Inputs</h2>
 <h3 id="input-csv">Input CSV</h3>
-<p>The CSV has one idXML file per search engine, with all rows belonging to the same sample or plex:</p>
+<p>The CSV has one idXML file per sample or plex and search engine:</p>
 <table>
 <thead>
 <tr>
@@ -110,6 +112,11 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>sample_name</code></td>
+<td>yes</td>
+<td>Sample or plex name. Use letters, digits, dot, underscore, or hyphen; the first character must be a letter or digit.</td>
+</tr>
 <tr>
 <td><code>search_engine</code></td>
 <td>yes</td>
@@ -122,11 +129,20 @@
 </tr>
 </tbody>
 </table>
-<pre><code class="language-csv">search_engine,idXML
-Comet,/data/SBP0001_Comet.idXML
-Sage,/data/SBP0001_Sage.idXML
-MSFragger,/data/SBP0001_MSFragger.idXML
+<pre><code class="language-csv">sample_name,search_engine,idXML
+SBP0001,Comet,/data/SBP0001_Comet.idXML
+SBP0001,Sage,/data/SBP0001_Sage.idXML
+SBP0002,MSFragger,/data/SBP0002_MSFragger.idXML
 </code></pre>
+<p>The <code>sample_name</code> column is required even when the CSV contains only one sample. Duplicate sample/search-engine pairs are rejected.</p>
+<h3 id="mzml-csv-for-msbooster">mzML CSV for MSBooster</h3>
+<p>For MSBooster, provide a second CSV using <code>input_mzml_csv</code>. It lists each fraction once per sample; every search engine for that sample receives the same set of mzML files. Fraction labels must be unique within a sample. Numeric fractions are ordered numerically; other labels are ordered alphabetically.</p>
+<pre><code class="language-csv">sample_name,fraction,mzML
+SBP0001,1,/data/SBP0001_f01.mzML
+SBP0001,2,/data/SBP0001_f02.mzML
+SBP0002,1,/data/SBP0002_f01.mzML
+</code></pre>
+<p>The sample names in the two CSV files must match. Spectrum references in idXML must contain <code>scan=N</code> and identify MS2 scans in the corresponding mzML. When a scan number occurs in several fractions, <code>file_origin</code> or <code>id_merge_index</code> in the idXML must disambiguate it. Missing or ambiguous matches fail during PIN export.</p>
 <p>The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require <code>run_percolator = false</code>.</p>
 <h3 id="config">Config</h3>
 <table>
@@ -144,14 +160,14 @@ MSFragger,/data/SBP0001_MSFragger.idXML
 <td>Path to the input CSV.</td>
 </tr>
 <tr>
+<td><code>input_mzml_csv</code></td>
+<td>string(path)</td>
+<td>Path to the <code>sample_name,fraction,mzML</code> CSV, required for the MSBooster route.</td>
+</tr>
+<tr>
 <td><code>output_dir</code></td>
 <td>string(path)</td>
 <td>Root output directory.</td>
-</tr>
-<tr>
-<td><code>sample_name</code></td>
-<td>string</td>
-<td>Name of the one sample or plex processed in this run.</td>
 </tr>
 <tr>
 <td><code>decoy_database</code></td>
@@ -161,7 +177,7 @@ MSFragger,/data/SBP0001_MSFragger.idXML
 <tr>
 <td><code>decoy_string</code></td>
 <td>string</td>
-<td>Decoy protein prefix used by PeptideIndexer. Defaults to <code>DECOY_</code>.</td>
+<td>Decoy protein prefix used by PeptideIndexer. Defaults to <code>DECOY_</code>; must match <code>database.decoy_string</code> in the ProtLoom project YAML when ProtLoom is enabled.</td>
 </tr>
 <tr>
 <td><code>enzyme</code></td>
@@ -177,6 +193,76 @@ MSFragger,/data/SBP0001_MSFragger.idXML
 <td><code>run_percolator</code></td>
 <td>bool</td>
 <td>Rescore PSMs with PercolatorAdapter. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>percolator_workflow</code></td>
+<td>string</td>
+<td><code>openms</code> (default) runs PercolatorAdapter; <code>msbooster</code> exports PIN, adds predicted features with MSBooster, runs Percolator directly, and imports PEPs into idXML.</td>
+</tr>
+<tr>
+<td><code>msbooster_params</code></td>
+<td>string(path)</td>
+<td>MSBooster prediction settings. Defaults to <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/input/msbooster.params">input/msbooster.params</a>, which uses DIA-NN. The pipeline supplies input PIN, mzML, and DIA-NN executable paths.</td>
+</tr>
+<tr>
+<td><code>fragpipe_version</code></td>
+<td>string</td>
+<td>FragPipe image version. Defaults to <code>24.0</code>.</td>
+</tr>
+<tr>
+<td><code>docker_image_fragpipe</code></td>
+<td>string</td>
+<td>Image containing MSBooster, DIA-NN, and Percolator. Defaults to <code>fcyucn/fragpipe:24.0</code>, as used by the protein quantification pipeline.</td>
+</tr>
+<tr>
+<td><code>run_protloom</code></td>
+<td>bool</td>
+<td>Run ProtLoom inference and FDR after MSBooster and Percolator. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>dataset_id</code></td>
+<td>string</td>
+<td>Directory name for cohort-level ProtLoom outputs. Defaults to <code>cohort</code>.</td>
+</tr>
+<tr>
+<td><code>export_easypqp_reports</code></td>
+<td>bool</td>
+<td>Export <code>&lt;dataset_id&gt;-psm.tsv</code>, <code>&lt;dataset_id&gt;-peptides.tsv</code>, and exclusion counts after ProtLoom FDR. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_easypqp_fdr</code></td>
+<td>number</td>
+<td>Maximum PSM and protein-group q-value for EasyPQP export. Defaults to <code>0.01</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_idxml_primary_score</code></td>
+<td>string</td>
+<td>Primary score in ProtLoom-annotated idXML: <code>original</code> (default), <code>pep</code>, or <code>q_value</code> (<code>q-value</code> is also accepted).</td>
+</tr>
+<tr>
+<td><code>protloom_idxml_unmatched_psms</code></td>
+<td>string</td>
+<td>Handling for PSMs without mapped ProtLoom results: <code>remove</code> (default) or <code>keep</code>.</td>
+</tr>
+<tr>
+<td><code>docker_image_protloom</code></td>
+<td>string</td>
+<td>ProtLoom container image. Defaults to <code>ghcr.io/theboutroslab/protloom:0.2.3</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_project_yaml</code></td>
+<td>string(path)</td>
+<td>ProtLoom project YAML with <code>database.output_fasta</code>, <code>database.output_entries_tsv</code>, <code>annotations</code>, and a <code>samples</code> entry mapping each CSV <code>sample_name</code> to an <code>annotation_id</code>. Required when ProtLoom is enabled. Paths in the YAML are relative to its location.</td>
+</tr>
+<tr>
+<td><code>protloom_pt_order</code>, <code>protloom_pc_order</code></td>
+<td>string</td>
+<td>Comma-separated protein-tier and peptide-class priorities. Required when ProtLoom is enabled.</td>
+</tr>
+<tr>
+<td><code>protloom_enzyme</code></td>
+<td>string</td>
+<td>ProtLoom cleavage rule name; defaults to <code>trypsin</code>.</td>
 </tr>
 <tr>
 <td><code>percolator_post_processing_tdc</code></td>
@@ -241,6 +327,9 @@ MSFragger,/data/SBP0001_MSFragger.idXML
 </tbody>
 </table>
 <p>Additional OpenMS options and their pipeline parameter names are listed in <a href="../params.rst">docs/params.rst</a>.</p>
+<p>The MSBooster route uses the FragPipe image for MSBooster, DIA-NN prediction, and direct Percolator execution. It writes PEP, q-value, and SVM scores back to the original idXML PSMs. The original <code>openms</code> workflow remains available and is the default.</p>
+<p>When <code>run_protloom = true</code>, set <code>protloom_project_yaml</code> to the project YAML used to build the search database. The configuration setup loads and validates that YAML before the workflow starts. Its <code>database.output_fasta</code> and <code>database.output_entries_tsv</code> must point to the existing <code>buildDB</code> outputs. Each <code>samples</code> row must have a <code>sample_id</code> matching <code>sample_name</code> in the input CSV and an <code>annotation_id</code> listed under <code>annotations</code>. The YAML's <code>id_files</code> values are ignored: the pipeline inserts the idXML files produced during this run into per-task project manifests. All referenced FASTA, entries TSV, and GTF files are staged into the ProtLoom tasks. Database decoy and contaminant markers come from the YAML; set the pipeline's <code>decoy_string</code> to the same decoy marker. See <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/21781247c8be654323a4ab44461a2589c97f037e/input/protloom-project.example.yaml">input/protloom-project.example.yaml</a> for the required fields.</p>
+<p>The pipeline passes unfiltered Percolator idXML with lower-is-better PEP scores directly to ProtLoom 0.2.3. One sample runs <code>localInfer --disable-ccs</code>. Multiple samples run <code>jointGraph</code> once, followed by <code>jointInfer --disable-ccs</code> for each sample. <code>computeFDR</code> runs after either inference path. Samples with multiple search engines use the consensus result; set <code>merge_consensus = true</code> for those inputs. The default container is <code>ghcr.io/theboutroslab/protloom:0.2.3</code>; set <code>docker_image_protloom</code> to override it.</p>
 <hr />
               
             </div>
