@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Inputs - pipeline-validate-ProteomicPSM</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Inputs";
+        var mkdocs_page_input_path = "inputs.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> pipeline-validate-ProteomicPSM
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../how-to-run/">How To Run</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../pipeline-steps/">Pipeline Steps</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Inputs</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#input-csv">Input CSV</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#mzml-csv-for-msbooster">mzML CSV for MSBooster</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#config">Config</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../outputs/">Outputs</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">pipeline-validate-ProteomicPSM</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Inputs</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/v2.0.0/README.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="inputs">Inputs</h2>
+<h3 id="input-csv">Input CSV</h3>
+<p>The CSV has one idXML file per sample or plex and search engine:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sample_name</code></td>
+<td>yes</td>
+<td>Sample or plex name. Use letters, digits, dot, underscore, or hyphen; the first character must be a letter or digit.</td>
+</tr>
+<tr>
+<td><code>search_engine</code></td>
+<td>yes</td>
+<td>Search engine name, such as <code>Comet</code>, <code>Sage</code>, <code>MSFragger</code>, or <code>XTandem</code>.</td>
+</tr>
+<tr>
+<td><code>idXML</code></td>
+<td>yes</td>
+<td>Absolute path to that engine's idXML search result.</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-csv">sample_name,search_engine,idXML
+SBP0001,Comet,/data/SBP0001_Comet.idXML
+SBP0001,Sage,/data/SBP0001_Sage.idXML
+SBP0002,MSFragger,/data/SBP0002_MSFragger.idXML
+</code></pre>
+<p>The <code>sample_name</code> column is required even when the CSV contains only one sample. Duplicate sample/search-engine pairs are rejected.</p>
+<h3 id="mzml-csv-for-msbooster">mzML CSV for MSBooster</h3>
+<p>For MSBooster, provide a second CSV using <code>input_mzml_csv</code>. It lists each fraction once per sample; every search engine for that sample receives the same set of mzML files. Fraction labels must be unique within a sample. Numeric fractions are ordered numerically; other labels are ordered alphabetically.</p>
+<pre><code class="language-csv">sample_name,fraction,mzML
+SBP0001,1,/data/SBP0001_f01.mzML
+SBP0001,2,/data/SBP0001_f02.mzML
+SBP0002,1,/data/SBP0002_f01.mzML
+</code></pre>
+<p>The sample names in the two CSV files must match. Spectrum references in idXML must contain <code>scan=N</code> and identify MS2 scans in the corresponding mzML. When a scan number occurs in several fractions, <code>file_origin</code> or <code>id_merge_index</code> in the idXML must disambiguate it. Missing or ambiguous matches fail during PIN export.</p>
+<p>The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require <code>run_percolator = false</code>.</p>
+<h3 id="config">Config</h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input_csv</code></td>
+<td>string(path)</td>
+<td>Path to the input CSV.</td>
+</tr>
+<tr>
+<td><code>input_mzml_csv</code></td>
+<td>string(path)</td>
+<td>Path to the <code>sample_name,fraction,mzML</code> CSV, required for the MSBooster route.</td>
+</tr>
+<tr>
+<td><code>output_dir</code></td>
+<td>string(path)</td>
+<td>Root output directory.</td>
+</tr>
+<tr>
+<td><code>decoy_database</code></td>
+<td>string(path)</td>
+<td>Target-decoy protein FASTA used for peptide indexing. Required by the configuration schema.</td>
+</tr>
+<tr>
+<td><code>decoy_string</code></td>
+<td>string</td>
+<td>Decoy protein prefix used by PeptideIndexer. Defaults to <code>DECOY_</code>; must match <code>database.decoy_string</code> in the ProtLoom project YAML when ProtLoom is enabled.</td>
+</tr>
+<tr>
+<td><code>enzyme</code></td>
+<td>string</td>
+<td>Digestion enzyme for PeptideIndexer, IDFilter, and Percolator. Defaults to <code>Trypsin</code>.</td>
+</tr>
+<tr>
+<td><code>skip_peptide_indexing</code></td>
+<td>bool</td>
+<td>Skip PeptideIndexer when input idXML is already indexed. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>run_percolator</code></td>
+<td>bool</td>
+<td>Rescore PSMs with PercolatorAdapter. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>percolator_workflow</code></td>
+<td>string</td>
+<td><code>openms</code> (default) runs PercolatorAdapter; <code>msbooster</code> exports PIN, adds predicted features with MSBooster, runs Percolator directly, and imports PEPs into idXML.</td>
+</tr>
+<tr>
+<td><code>msbooster_params</code></td>
+<td>string(path)</td>
+<td>MSBooster prediction settings. Defaults to <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/add6fd19d3ec428c20b997862210f6813f052de9/input/msbooster.params">input/msbooster.params</a>, which uses DIA-NN. The pipeline supplies input PIN, mzML, and DIA-NN executable paths.</td>
+</tr>
+<tr>
+<td><code>fragpipe_version</code></td>
+<td>string</td>
+<td>FragPipe image version. Defaults to <code>24.0</code>.</td>
+</tr>
+<tr>
+<td><code>docker_image_fragpipe</code></td>
+<td>string</td>
+<td>Image containing MSBooster, DIA-NN, and Percolator. Defaults to <code>fcyucn/fragpipe:24.0</code>, as used by the protein quantification pipeline.</td>
+</tr>
+<tr>
+<td><code>run_protloom</code></td>
+<td>bool</td>
+<td>Run ProtLoom inference and FDR after MSBooster and Percolator. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>dataset_id</code></td>
+<td>string</td>
+<td>Directory name for cohort-level ProtLoom outputs. Defaults to <code>cohort</code>.</td>
+</tr>
+<tr>
+<td><code>export_easypqp_reports</code></td>
+<td>bool</td>
+<td>Export <code>&lt;dataset_id&gt;-psm.tsv</code>, <code>&lt;dataset_id&gt;-peptides.tsv</code>, and exclusion counts after ProtLoom FDR. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_easypqp_fdr</code></td>
+<td>number</td>
+<td>Maximum PSM and protein-group q-value for EasyPQP export. Defaults to <code>0.01</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_idxml_primary_score</code></td>
+<td>string</td>
+<td>Primary score in ProtLoom-annotated idXML: <code>original</code> (default), <code>pep</code>, or <code>q_value</code> (<code>q-value</code> is also accepted).</td>
+</tr>
+<tr>
+<td><code>protloom_idxml_unmatched_psms</code></td>
+<td>string</td>
+<td>Handling for PSMs without mapped ProtLoom results: <code>remove</code> (default) or <code>keep</code>.</td>
+</tr>
+<tr>
+<td><code>docker_image_protloom</code></td>
+<td>string</td>
+<td>ProtLoom container image. Defaults to <code>ghcr.io/theboutroslab/protloom:0.2.3</code>.</td>
+</tr>
+<tr>
+<td><code>protloom_project_yaml</code></td>
+<td>string(path)</td>
+<td>ProtLoom project YAML with <code>database.output_fasta</code>, <code>database.output_entries_tsv</code>, <code>annotations</code>, and a <code>samples</code> entry mapping each CSV <code>sample_name</code> to an <code>annotation_id</code>. Required when ProtLoom is enabled. Paths in the YAML are relative to its location.</td>
+</tr>
+<tr>
+<td><code>protloom_pt_order</code>, <code>protloom_pc_order</code></td>
+<td>string</td>
+<td>Comma-separated protein-tier and peptide-class priorities. Required when ProtLoom is enabled.</td>
+</tr>
+<tr>
+<td><code>protloom_enzyme</code></td>
+<td>string</td>
+<td>ProtLoom cleavage rule name; defaults to <code>trypsin</code>.</td>
+</tr>
+<tr>
+<td><code>percolator_post_processing_tdc</code></td>
+<td>bool</td>
+<td>Enable Percolator target-decoy competition post-processing. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>merge_consensus</code></td>
+<td>bool</td>
+<td>Combine search-engine results with ConsensusID. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>fractionated</code></td>
+<td>bool</td>
+<td>Split fractionated idXML before consensus merging. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>filter_psm_score_peptide</code></td>
+<td>number</td>
+<td>Maximum PSM q-value passed to <code>IDFilter -score:psm</code> when q-values are used. Defaults to <code>0.01</code>. The parameter name is retained for compatibility.</td>
+</tr>
+<tr>
+<td><code>filter_psm_remove_decoys</code></td>
+<td>bool</td>
+<td>Remove decoy identifications from filtered outputs. Defaults to <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>filter_psm_whitelist_proteins</code>, <code>filter_psm_whitelist_peptides</code></td>
+<td>string(path)</td>
+<td>Optional FASTA or idXML files restricting retained proteins or peptides.</td>
+</tr>
+<tr>
+<td><code>filter_psm_blacklist_proteins</code>, <code>filter_psm_blacklist_peptides</code></td>
+<td>string(path)</td>
+<td>Optional FASTA or idXML files excluding proteins or peptides.</td>
+</tr>
+<tr>
+<td><code>filter_psm_in_silico_digestion</code></td>
+<td>string(path)</td>
+<td>Optional FASTA for IDFilter digestion-based filtering.</td>
+</tr>
+<tr>
+<td><code>save_intermediate_files</code></td>
+<td>bool</td>
+<td>Publish intermediate idXML files. Defaults to <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>ucla_cds</code></td>
+<td>bool</td>
+<td>Compatibility flag required by the shared execution setup. Keep <code>false</code> outside the legacy UCLA-CDS environment.</td>
+</tr>
+<tr>
+<td><code>work_dir</code></td>
+<td>string(path)</td>
+<td>Optional location for Nextflow intermediate files.</td>
+</tr>
+<tr>
+<td><code>base_resource_update</code></td>
+<td>namespace</td>
+<td>Optional per-process CPU and memory multipliers applied to default allocations.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional OpenMS options and their pipeline parameter names are listed in <a href="../params.rst">docs/params.rst</a>.</p>
+<p>The MSBooster route uses the FragPipe image for MSBooster, DIA-NN prediction, and direct Percolator execution. It writes PEP, q-value, and SVM scores back to the original idXML PSMs. The original <code>openms</code> workflow remains available and is the default.</p>
+<p>When <code>run_protloom = true</code>, set <code>protloom_project_yaml</code> to the project YAML used to build the search database. The configuration setup loads and validates that YAML before the workflow starts. Its <code>database.output_fasta</code> and <code>database.output_entries_tsv</code> must point to the existing <code>buildDB</code> outputs. Each <code>samples</code> row must have a <code>sample_id</code> matching <code>sample_name</code> in the input CSV and an <code>annotation_id</code> listed under <code>annotations</code>. The YAML's <code>id_files</code> values are ignored: the pipeline inserts the idXML files produced during this run into per-task project manifests. All referenced FASTA, entries TSV, and GTF files are staged into the ProtLoom tasks. Database decoy and contaminant markers come from the YAML; set the pipeline's <code>decoy_string</code> to the same decoy marker. See <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/add6fd19d3ec428c20b997862210f6813f052de9/input/protloom-project.example.yaml">input/protloom-project.example.yaml</a> for the required fields.</p>
+<p>The pipeline passes unfiltered Percolator idXML with lower-is-better PEP scores directly to ProtLoom 0.2.3. One sample runs <code>localInfer --disable-ccs</code>. Multiple samples run <code>jointGraph</code> once, followed by <code>jointInfer --disable-ccs</code> for each sample. <code>computeFDR</code> runs after either inference path. Samples with multiple search engines use the consensus result; set <code>merge_consensus = true</code> for those inputs. The default container is <code>ghcr.io/theboutroslab/protloom:0.2.3</code>; set <code>docker_image_protloom</code> to override it.</p>
+<hr />
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../pipeline-steps/" class="btn btn-neutral float-left" title="Pipeline Steps"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../outputs/" class="btn btn-neutral float-right" title="Outputs">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/tree/v2.0.0" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../pipeline-steps/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../outputs/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
