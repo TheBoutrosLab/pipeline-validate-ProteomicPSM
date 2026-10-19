@@ -24,9 +24,6 @@
 - Bypass OpenMS PSMFeatureExtractor in the MSBooster route, allowing DIA idXML inputs whose Percolator features are supplied by MSBooster.
 - Use the rank-based ConsensusID algorithm when Percolator is disabled, because the default PEP-based algorithm cannot score q-value inputs. Retain PEPMatrix when Percolator is enabled.
 
-### Tests
-- Keep the OpenMS integration case, add a matching MSBooster Percolator case and an MSFragger DIA MSBooster case with empty input templates; remove the skip-indexing, no-Percolator, and unfractionated cases.
-
 ## [1.0.1] - 2026-10-11
 
 ### Fixed
