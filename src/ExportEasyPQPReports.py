@@ -30,6 +30,15 @@ def psm_key(native_id, unimod_sequence, charge):
     return native_id, unimod_sequence, int(charge)
 
 
+def matching_psm_index(candidates, rt, mz, sample_name, key):
+    matching = [index for index, (row, _, _) in enumerate(candidates)
+                if abs(float(row["rt"]) - rt) < 0.001
+                and abs(float(row["mz"]) - mz) < 0.0001]
+    if len(matching) > 1:
+        raise ValueError(f"Cannot distinguish duplicate PSMs in {sample_name}: {key}")
+    return matching[0] if matching else None
+
+
 def match_raw_file(pid, scan, paths, source_stems, scan_cache):
     if len(paths) == 1:
         return paths[0]
@@ -133,15 +142,11 @@ def export(manifest, threshold, output_prefix):
             candidates = fdr_rows.get(key)
             if not candidates:
                 continue
-            if len(candidates) > 1:
-                matching = [index for index, (candidate, _, _) in enumerate(candidates)
-                            if abs(float(candidate["rt"]) - pid.getRT()) < 0.001
-                            and abs(float(candidate["mz"]) - pid.getMZ()) < 0.0001]
-                if len(matching) != 1:
-                    raise ValueError(f"Cannot distinguish duplicate PSMs in {sample_name}: {key}")
-                candidate_index = matching[0]
-            else:
-                candidate_index = 0
+            candidate_index = matching_psm_index(
+                candidates, pid.getRT(), pid.getMZ(), sample_name, key
+            )
+            if candidate_index is None:
+                continue
             row, group_id, leading = candidates.pop(candidate_index)
             scan = scan_number(native_id)
             raw_file = match_raw_file(pid, scan, paths, source_stems, scan_cache)

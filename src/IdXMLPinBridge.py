@@ -65,13 +65,11 @@ def match_mzml(pid, scan, paths, scan_sets, source_stems):
     merge_index = meta_text(pid, "id_merge_index")
     if merge_index:
         index = int(merge_index)
-        if index < len(source_stems):
+        if 0 <= index < len(source_stems):
             matches = [candidate for candidate in candidates
                        if paths[candidate].stem.lower() == source_stems[index]]
             if len(matches) == 1:
                 return matches[0]
-        if index in candidates:
-            return index
     raise ValueError(f"Scan {scan} occurs in multiple mzML files without an unambiguous file origin")
 
 
