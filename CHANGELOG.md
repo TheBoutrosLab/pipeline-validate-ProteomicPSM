@@ -16,6 +16,7 @@
 - Support multiple samples or plexes in one run by requiring `sample_name` in every input CSV row and keeping validation, consensus, and outputs separate by sample ([#8](https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/issues/8)).
 
 ### Fixed
+- Remove the unsupported Tests section so release preparation can parse the unreleased entry.
 - Preserve replaced idXML scores under their original score-type names without extra score-type or orientation metadata.
 - Use pyOpenMS 3.5-compatible peptide-list and protein-group APIs when writing ProtLoom-annotated idXML.
 - Skip per-engine and consensus OpenMS FDR calculation when ProtLoom is enabled; use ProtLoom q-values for final `IDFilter` and mzTab export.
@@ -23,9 +24,6 @@
 - Use ProtLoom 0.2.3 and pass lower-is-better Percolator PEP idXML directly to inference; ProtLoom database preparation now uses `buildDB`.
 - Bypass OpenMS PSMFeatureExtractor in the MSBooster route, allowing DIA idXML inputs whose Percolator features are supplied by MSBooster.
 - Use the rank-based ConsensusID algorithm when Percolator is disabled, because the default PEP-based algorithm cannot score q-value inputs. Retain PEPMatrix when Percolator is enabled.
-
-### Tests
-- Keep the OpenMS integration case, add a matching MSBooster Percolator case and an MSFragger DIA MSBooster case with empty input templates; remove the skip-indexing, no-Percolator, and unfractionated cases.
 
 ## [1.0.1] - 2026-10-11
 
