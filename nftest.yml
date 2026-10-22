@@ -26,3 +26,10 @@ cases:
     nf_config: test/test_integration_msbooster_msfragger_dia/test.config
     skip: false
     verbose: true
+
+  - name: test-integration-ProteinProphet
+    message: DIA MSFragger integration test with iProphet and ProteinProphet EasyPQP export
+    nf_script: main.nf
+    nf_config: test/test_integration_proteinprophet/test.config
+    skip: false
+    verbose: true

@@ -7,7 +7,7 @@ input_mzml_csv:
   type: Path
   mode: r
   required: false
-  help: CSV containing sample_name, fraction, and mzML columns; required for MSBooster.
+  help: CSV containing sample_name, fraction, and mzML columns; required for MSBooster or EasyPQP export.
 output_dir:
   type: Path
   mode: w
@@ -66,7 +66,15 @@ dataset_id:
 export_easypqp_reports:
   type: Bool
   required: false
-  help: Export dataset-prefixed psm.tsv and peptides.tsv for EasyPQP after ProtLoom FDR; default false.
+  help: Export dataset-prefixed EasyPQP reports using ProtLoom or, when disabled, iProphet and ProteinProphet.
+proteinprophet_min_probability:
+  type: Number
+  required: false
+  help: Minimum ProteinProphet group probability for EasyPQP export; groups below the cutoff are excluded. Default 0.
+proteinprophet_easypqp_psm_qvalue:
+  type: Number
+  required: false
+  help: Maximum OpenMS PSM q-value for ProteinProphet EasyPQP export; default 0.01.
 protloom_version:
   type: String
   required: false
