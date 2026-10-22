@@ -2,7 +2,6 @@
 """Export EasyPQP tables from OpenMS PSM q-values and ProteinProphet groups."""
 
 import argparse
-import csv
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -12,6 +11,7 @@ from IdXMLPinBridge import as_text, load_idxml, meta_text, scan_number
 
 
 def protein_groups(path, cutoff, decoy_string):
+    """Index accepted target protein groups by their member accessions."""
     runs, _ = load_idxml(path)
     if not runs:
         raise ValueError("ProteinProphet idXML contains no protein identifications")
@@ -36,6 +36,7 @@ def protein_groups(path, cutoff, decoy_string):
 
 
 def export(manifest, group_path, threshold, group_cutoff, decoy_string, prefix):
+    """Write PSM, peptide, and exclusion-summary tables for a cohort."""
     accession_groups, leaders, accepted_groups = protein_groups(
         group_path, group_cutoff, decoy_string
     )
@@ -165,6 +166,7 @@ def export(manifest, group_path, threshold, group_cutoff, decoy_string, prefix):
 
 
 def main():
+    """Parse command-line options and export the requested cohort tables."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--groups", required=True, type=Path)

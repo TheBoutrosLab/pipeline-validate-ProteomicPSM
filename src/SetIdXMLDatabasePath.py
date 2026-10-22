@@ -8,6 +8,7 @@ import pyopenms as oms
 
 
 def main():
+    """Set every protein identification's database path and save the idXML."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--database", required=True, type=Path)
