@@ -378,6 +378,30 @@
                 }
             }
         },
+        "prepare_ProteinProphet_idXML": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "24 GB"}
+        },
+        "convert_ProteinProphet_pepXML": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "24 GB"}
+        },
+        "run_iProphet": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}
+        },
+        "run_ProteinProphet": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}
+        },
+        "convert_ProteinProphet_idXML": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "24 GB"}
+        },
+        "export_ProteinProphet_EasyPQP": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "24 GB"}
+        },
         "run_ProtLoom_localInfer": {
             "cpus": {"min": 1, "fraction": 0.1, "max": 4},
             "memory": {"min": "8 GB", "fraction": 0.25, "max": "32 GB"}

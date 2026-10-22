@@ -1,0 +1,3 @@
+sample_name,fraction,mzML
+LFQ_Orbitrap_AIF_Ecoli_01,1,$TEST_DATA_DIR/ecoli_dia/mzML/LFQ_Orbitrap_AIF_Ecoli_01_indexed-30min-3.mzML
+LFQ_Orbitrap_AIF_Ecoli_02,1,$TEST_DATA_DIR/ecoli_dia/mzML/LFQ_Orbitrap_AIF_Ecoli_02_indexed-30min-3.mzML

@@ -28,6 +28,12 @@ include { annotate_ProtLoom_idXML } from "${projectDir}/modules/annotate_ProtLoo
 include { switch_ProtLoom_qvalue } from "${projectDir}/modules/switch_ProtLoom_qvalue"
 include { export_EasyPQP_reports } from "${projectDir}/modules/export_EasyPQP_reports"
 include { calculate_SHA512 } from "${projectDir}/modules/calculate_SHA512"
+include { prepare_ProteinProphet_idXML } from "${projectDir}/modules/prepare_ProteinProphet_idXML"
+include { convert_ProteinProphet_pepXML } from "${projectDir}/modules/convert_ProteinProphet_pepXML"
+include { run_iProphet } from "${projectDir}/modules/run_iProphet"
+include { run_ProteinProphet } from "${projectDir}/modules/run_ProteinProphet"
+include { convert_ProteinProphet_idXML } from "${projectDir}/modules/convert_ProteinProphet_idXML"
+include { export_ProteinProphet_EasyPQP } from "${projectDir}/modules/export_ProteinProphet_EasyPQP"
 
 printPrelogue()
 
@@ -73,6 +79,64 @@ workflow {
         }
     ich = idxml_rows.flatMap { it }
 
+    // mzML lists are shared by all search engines for each sample. Both
+    // MSBooster and the EasyPQP exports need these fraction-aware paths.
+    if ((params.run_percolator && params.percolator_workflow == 'msbooster') ||
+        params.export_easypqp_reports) {
+        // One mzML list is shared by every search engine for a sample;
+        // fraction labels determine its stable order.
+        mzML_by_sample = Channel.fromPath(params.input_mzml_csv)
+            .splitCsv(header:true)
+            .ifEmpty { error "mzML CSV '${params.input_mzml_csv}' has no data rows." }
+            .collect()
+            .map { [rows: it] }
+            .combine(idxml_rows.map { [rows: it] })
+            .flatMap { mzml_payload, search_payload ->
+                def mzml_rows = mzml_payload.rows
+                def search_rows = search_payload.rows
+                def required_columns = ['sample_name', 'fraction', 'mzML']
+                def missing_columns = required_columns.findAll { !mzml_rows[0].containsKey(it) }
+                if (missing_columns) {
+                    error "mzML CSV '${params.input_mzml_csv}' is missing columns: ${missing_columns.join(', ')}."
+                }
+                def raw_by_sample = [:].withDefault { [] }
+                def seen_fractions = [] as Set
+                def seen_mzml_paths = [] as Set
+                mzml_rows.each { row ->
+                    def sample_name = row.sample_name?.trim()
+                    def fraction = row.fraction?.trim()
+                    def mzml = row.mzML?.trim()
+                    if (!(sample_name ==~ /[A-Za-z0-9][A-Za-z0-9._-]*/)) {
+                        error "Invalid or missing sample_name in mzML CSV: '${sample_name}'."
+                    }
+                    if (!fraction || !mzml) {
+                        error "Each mzML CSV row needs fraction and mzML for sample '${sample_name}'."
+                    }
+                    if (!seen_fractions.add([sample_name, fraction])) {
+                        error "Duplicate mzML CSV row for sample '${sample_name}' and fraction '${fraction}'."
+                    }
+                    if (!seen_mzml_paths.add([sample_name, mzml])) {
+                        error "Duplicate mzML path for sample '${sample_name}': '${mzml}'."
+                    }
+                    raw_by_sample[sample_name] << [fraction, file(mzml)]
+                }
+                def search_samples = search_rows.collect { it[0] }.toSet()
+                def missing_samples = search_samples - raw_by_sample.keySet()
+                def extra_samples = raw_by_sample.keySet() - search_samples
+                if (missing_samples || extra_samples) {
+                    error "mzML CSV sample names do not match input CSV (missing: ${missing_samples}; extra: ${extra_samples})."
+                }
+                raw_by_sample.collect { sample_name, fractions ->
+                    def ordered = fractions.sort { left, right ->
+                        def a = left[0].isInteger() ? left[0].toInteger() : null
+                        def b = right[0].isInteger() ? right[0].toInteger() : null
+                        (a != null && b != null) ? (a <=> b) : (left[0] <=> right[0])
+                    }
+                    [sample_name, ordered.collect { it[1] }]
+                }
+            }
+    }
+
     // OpenMS search adapters may already have run PeptideIndexer.
     if (params.skip_peptide_indexing) {
         idXML_indexed = ich
@@ -86,58 +150,6 @@ workflow {
             // MSBooster supplies the Percolator features; PSMFeatureExtractor
             // cannot process idXML files containing multiple ProteinID runs.
             feature_idXML = idXML_indexed
-            // One mzML list is shared by every search engine for a sample;
-            // fraction labels determine its stable order.
-            mzML_by_sample = Channel.fromPath(params.input_mzml_csv)
-                .splitCsv(header:true)
-                .ifEmpty { error "mzML CSV '${params.input_mzml_csv}' has no data rows." }
-                .collect()
-                .map { [rows: it] }
-                .combine(idxml_rows.map { [rows: it] })
-                .flatMap { mzml_payload, search_payload ->
-                    def mzml_rows = mzml_payload.rows
-                    def search_rows = search_payload.rows
-                    def required_columns = ['sample_name', 'fraction', 'mzML']
-                    def missing_columns = required_columns.findAll { !mzml_rows[0].containsKey(it) }
-                    if (missing_columns) {
-                        error "mzML CSV '${params.input_mzml_csv}' is missing columns: ${missing_columns.join(', ')}."
-                    }
-                    def raw_by_sample = [:].withDefault { [] }
-                    def seen_fractions = [] as Set
-                    def seen_mzml_paths = [] as Set
-                    mzml_rows.each { row ->
-                        def sample_name = row.sample_name?.trim()
-                        def fraction = row.fraction?.trim()
-                        def mzml = row.mzML?.trim()
-                        if (!(sample_name ==~ /[A-Za-z0-9][A-Za-z0-9._-]*/)) {
-                            error "Invalid or missing sample_name in mzML CSV: '${sample_name}'."
-                        }
-                        if (!fraction || !mzml) {
-                            error "Each mzML CSV row needs fraction and mzML for sample '${sample_name}'."
-                        }
-                        if (!seen_fractions.add([sample_name, fraction])) {
-                            error "Duplicate mzML CSV row for sample '${sample_name}' and fraction '${fraction}'."
-                        }
-                        if (!seen_mzml_paths.add([sample_name, mzml])) {
-                            error "Duplicate mzML path for sample '${sample_name}': '${mzml}'."
-                        }
-                        raw_by_sample[sample_name] << [fraction, file(mzml)]
-                    }
-                    def search_samples = search_rows.collect { it[0] }.toSet()
-                    def missing_samples = search_samples - raw_by_sample.keySet()
-                    def extra_samples = raw_by_sample.keySet() - search_samples
-                    if (missing_samples || extra_samples) {
-                        error "mzML CSV sample names do not match input CSV (missing: ${missing_samples}; extra: ${extra_samples})."
-                    }
-                    raw_by_sample.collect { sample_name, fractions ->
-                        def ordered = fractions.sort { left, right ->
-                            def a = left[0].isInteger() ? left[0].toInteger() : null
-                            def b = right[0].isInteger() ? right[0].toInteger() : null
-                            (a != null && b != null) ? (a <=> b) : (left[0] <=> right[0])
-                        }
-                        [sample_name, ordered.collect { it[1] }]
-                    }
-                }
             paired_input = feature_idXML
                 .map { sample_name, idxml, search_engine -> [sample_name, idxml, search_engine] }
                 .combine(mzML_by_sample, by: 0)
@@ -188,6 +200,45 @@ workflow {
             ch_idXML_individual = switch_score_2_pep.out[0]
         } else {
             ch_idXML_individual = score_FDR_OpenMS.out[0]
+        }
+
+        if (params.export_easypqp_reports) {
+            // ProteinProphet groups proteins from the unfiltered Percolator
+            // identifications. The EasyPQP PSM cutoff uses OpenMS q-values.
+            prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
+            convert_ProteinProphet_pepXML(prepare_ProteinProphet_idXML.out[0])
+            prophet_pepxmls = convert_ProteinProphet_pepXML.out[0]
+                .map { sample_name, pepxml, search_engine -> pepxml }
+                .collect()
+            run_iProphet(prophet_pepxmls, file(params.decoy_database))
+            run_ProteinProphet(run_iProphet.out.pepxml, file(params.decoy_database))
+            convert_ProteinProphet_idXML(run_ProteinProphet.out.protxml)
+
+            prophet_easypqp_input = score_FDR_OpenMS.out[0]
+                .join(mzML_by_sample, by: 0)
+                .collect(flat: false)
+                .map { rows ->
+                    def ordered = rows.sort { a, b ->
+                        def sample_order = a[0] <=> b[0]
+                        sample_order != 0 ? sample_order : (a[2] <=> b[2])
+                    }
+                    def raw_files = ordered.collectMany { it[3] }.unique { it.toString() }
+                    def staged = ordered.collect { it[1] } + raw_files
+                    def names = staged.collect { it.name }
+                    if (names.size() != names.toSet().size()) {
+                        error 'ProteinProphet EasyPQP inputs must have unique basenames for staging.'
+                    }
+                    def manifest = ordered.collect { row ->
+                        [sample_name: row[0], idxml: row[1].name,
+                         mzmls: row[3].collect { it.name }]
+                    }
+                    [groovy.json.JsonOutput.toJson(manifest),
+                     ordered.collect { it[1] }, raw_files]
+                }
+            export_ProteinProphet_EasyPQP(
+                prophet_easypqp_input,
+                convert_ProteinProphet_idXML.out.groups
+            )
         }
     }
 

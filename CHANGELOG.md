@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- Include additional peptide-evidence accessions in the ProteinProphet EasyPQP `peptides.tsv` `Mapped Proteins` column.
+- Export EasyPQP PSM and peptide tables without ProtLoom by running cohort iProphet and ProteinProphet on Percolator results; retain OpenMS q-value selection, report excluded ambiguous mappings, and publish the Prophet intermediate files.
 - Prefix cohort-level ProtLoom graph, manifest, and EasyPQP reports with `dataset_id`.
 - Filter ProtLoom-annotated PSMs with the existing OpenMS `IDFilter` criteria after switching PEP or original scores to ProtLoom q-value; export mzTab and SHA-512 from the filtered result.
 - Allow ProtLoom-annotated idXML to use ProtLoom PEP or q-value as the primary peptide and protein score while preserving the previous score in metadata.
