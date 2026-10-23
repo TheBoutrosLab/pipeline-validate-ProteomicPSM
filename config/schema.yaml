@@ -91,10 +91,6 @@ easypqp_psm_qvalue:
   type: Number
   required: false
   help: Maximum PSM q-value for EasyPQP export in every inference route; default 0.01.
-proteinprophet_easypqp_psm_qvalue:
-  type: Number
-  required: false
-  help: Deprecated alias for easypqp_psm_qvalue.
 protloom_version:
   type: String
   required: false
@@ -126,10 +122,6 @@ protloom_easypqp_group_qvalue:
   type: Number
   required: false
   help: Maximum ProtLoom protein-group q-value for EasyPQP export; default 0.01.
-protloom_easypqp_fdr:
-  type: Number
-  required: false
-  help: Deprecated alias for protloom_easypqp_group_qvalue.
 protloom_idxml_primary_score:
   type: String
   required: false
