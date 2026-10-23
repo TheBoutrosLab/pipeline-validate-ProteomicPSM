@@ -13,7 +13,7 @@ from IdXMLPinBridge import as_text, load_idxml, meta_text, scan_number
 def protein_groups(path, cutoff, decoy_string, algorithm):
     """Index accepted target protein groups by their member accessions."""
     if algorithm == "Fido":
-        raw_groups = json.loads(Path(path).read_text())
+        raw_groups = json.loads(Path(path).read_text(encoding="utf-8"))
         groups = [(float(group["probability"]),
                    [str(accession) for accession in group["accessions"]])
                   for group in raw_groups]
