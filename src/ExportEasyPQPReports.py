@@ -74,7 +74,7 @@ def match_raw_file(pid, scan, paths, source_stems, scan_cache):
     return candidates[0]
 
 
-def export(manifest, threshold, output_prefix):
+def export(manifest, psm_qvalue, group_qvalue, output_prefix):
     """Export cohort-level EasyPQP filters from ProtLoom result tables."""
     assignments = defaultdict(set)
     selected = []
@@ -98,7 +98,7 @@ def export(manifest, threshold, output_prefix):
 
         groups = {}
         for row in read_rows(sample["group_fdr"], ("group_id", "leading_protein", "q_value")):
-            if float(row["q_value"]) <= threshold:
+            if float(row["q_value"]) <= group_qvalue:
                 groups[row["group_id"]] = row["leading_protein"]
 
         by_species = {}
@@ -114,7 +114,7 @@ def export(manifest, threshold, output_prefix):
         for row in read_rows(sample["psm_fdr"],
                              ("native_id", "unmodified_sequence", "unimod_sequence",
                               "charge", "rt", "mz", "q_value")):
-            if float(row["q_value"]) > threshold:
+            if float(row["q_value"]) > psm_qvalue:
                 continue
             species = (row["unimod_sequence"], int(row["charge"]))
             assignment = by_species.get(species)
@@ -218,17 +218,20 @@ def main():
     """Parse command-line options and write the requested EasyPQP reports."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
-    parser.add_argument("--fdr", type=float, default=0.01)
+    parser.add_argument("--psm-qvalue", type=float, default=0.01)
+    parser.add_argument("--group-qvalue", type=float, default=0.01)
     parser.add_argument("--output-prefix", required=True)
     args = parser.parse_args()
-    if not 0 <= args.fdr <= 1:
-        parser.error("--fdr must be between 0 and 1")
+    for name in ("psm_qvalue", "group_qvalue"):
+        if not 0 <= getattr(args, name) <= 1:
+            parser.error(f"--{name.replace('_', '-')} must be between 0 and 1")
     if not args.output_prefix or args.output_prefix in (".", "..") or any(
         character not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-"
         for character in args.output_prefix
     ):
         parser.error("--output-prefix must be a valid dataset ID")
-    export(json.loads(args.manifest.read_text()), args.fdr, args.output_prefix)
+    export(json.loads(args.manifest.read_text()), args.psm_qvalue,
+           args.group_qvalue, args.output_prefix)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Share the EasyPQP PSM q-value cutoff across all inference routes and give ProtLoom protein-group selection its own cutoff; accept deprecated parameter names unless they conflict with the replacements (#20).
+
 ## [2.2.0] - 2026-10-23
 
 ### Added

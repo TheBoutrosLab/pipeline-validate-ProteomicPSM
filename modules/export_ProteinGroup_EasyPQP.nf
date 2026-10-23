@@ -26,7 +26,7 @@ process export_ProteinGroup_EasyPQP {
     python3 ${projectDir}/src/ExportProteinGroupEasyPQP.py \\
         --manifest easypqp_export_manifest.json \\
         --groups ${group_idxml} \\
-        --psm-qvalue ${params.proteinprophet_easypqp_psm_qvalue} \\
+        --psm-qvalue ${params.easypqp_psm_qvalue} \\
         --min-protein-probability ${min_probability} \\
         --algorithm ${params.protein_inference_algorithm} \\
         --decoy-string '${params.decoy_string}' \\
