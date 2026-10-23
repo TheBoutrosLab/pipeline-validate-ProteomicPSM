@@ -1,4 +1,4 @@
-process run_ProtLoom_jointGraph {
+process build_CohortGraph_ProtLoom {
     container params.docker_image_protloom
 
     publishDir { "${params.final_output_dir}/${params.dataset_id}/ProtLoom-${params.protloom_version}/output" },

@@ -1,4 +1,4 @@
-process run_ProteinProphet {
+process infer_ProteinGroups_ProteinProphet {
     container params.docker_image_fragpipe
 
     publishDir { "${params.final_output_dir}/${params.dataset_id}/ProteinProphet/output" },

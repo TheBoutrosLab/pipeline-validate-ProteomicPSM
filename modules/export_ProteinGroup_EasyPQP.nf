@@ -1,8 +1,8 @@
-process export_ProteinProphet_EasyPQP {
+process export_ProteinGroup_EasyPQP {
     containerOptions params.project_script_mount_options
     container params.docker_image_pyopenms
 
-    publishDir { "${params.final_output_dir}/${params.dataset_id}/ProteinProphet/output" },
+    publishDir { "${params.final_output_dir}/${params.dataset_id}/${params.protein_inference_algorithm}/output" },
         mode: 'copy', pattern: '*.tsv'
 
     input:
@@ -15,15 +15,20 @@ process export_ProteinProphet_EasyPQP {
         path("${params.dataset_id}-easypqp_export_summary.tsv"), emit: summary
 
     script:
+    min_probability = params.protein_inference_algorithm == 'ProteinProphet' ?
+        params.proteinprophet_min_probability :
+        (params.protein_inference_algorithm == 'Fido' ?
+            params.fido_min_probability : params.epifany_min_probability)
     """
     cat > easypqp_export_manifest.json <<'JSON'
     ${manifest_json}
     JSON
-    python3 ${projectDir}/src/ExportProteinProphetEasyPQP.py \\
+    python3 ${projectDir}/src/ExportProteinGroupEasyPQP.py \\
         --manifest easypqp_export_manifest.json \\
         --groups ${group_idxml} \\
         --psm-qvalue ${params.proteinprophet_easypqp_psm_qvalue} \\
-        --min-protein-probability ${params.proteinprophet_min_probability} \\
+        --min-protein-probability ${min_probability} \\
+        --algorithm ${params.protein_inference_algorithm} \\
         --decoy-string '${params.decoy_string}' \\
         --output-prefix ${params.dataset_id}
     """

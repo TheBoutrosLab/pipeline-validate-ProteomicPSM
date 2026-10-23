@@ -6,8 +6,8 @@ include { index_peptides; index_peptides as index_peptide_aggregated } from "${p
 include { extract_PSM_features } from "${projectDir}/modules/extract_PSM_features"
 include { score_PEP_percolator } from "${projectDir}/modules/score_PEP_percolator"
 include { export_MSBooster_PIN } from "${projectDir}/modules/export_MSBooster_PIN"
-include { run_MSBooster } from "${projectDir}/modules/run_MSBooster"
-include { run_percolator_PIN } from "${projectDir}/modules/run_percolator_PIN"
+include { extract_PSMFeatures_MSBooster } from "${projectDir}/modules/extract_PSMFeatures_MSBooster"
+include { score_PSM_PercolatorPIN } from "${projectDir}/modules/score_PSM_PercolatorPIN"
 include { import_percolator_POUT } from "${projectDir}/modules/import_percolator_POUT"
 include { score_FDR_OpenMS } from "${projectDir}/modules/score_FDR_OpenMS"
 include { switch_score_2_pep } from "${projectDir}/modules/switch_score_2_pep"
@@ -20,20 +20,24 @@ include { filter_PSM as filter_PSM_consensus } from "${projectDir}/modules/filte
 include { filter_PSM as filter_PSM_protloom } from "${projectDir}/modules/filter_PSM"
 include { split_idXML } from "${projectDir}/modules/split_idXML"
 include { export_mzTab; export_mzTab as export_mzTab_consensus } from "${projectDir}/modules/export_mzTab"
-include { run_ProtLoom_localInfer } from "${projectDir}/modules/run_ProtLoom_localInfer"
-include { run_ProtLoom_jointGraph } from "${projectDir}/modules/run_ProtLoom_jointGraph"
-include { run_ProtLoom_jointInfer } from "${projectDir}/modules/run_ProtLoom_jointInfer"
-include { run_ProtLoom_computeFDR } from "${projectDir}/modules/run_ProtLoom_computeFDR"
+include { infer_ProteinGroups_ProtLoomLocal } from "${projectDir}/modules/infer_ProteinGroups_ProtLoomLocal"
+include { build_CohortGraph_ProtLoom } from "${projectDir}/modules/build_CohortGraph_ProtLoom"
+include { infer_ProteinGroups_ProtLoomJoint } from "${projectDir}/modules/infer_ProteinGroups_ProtLoomJoint"
+include { score_FDR_ProtLoom } from "${projectDir}/modules/score_FDR_ProtLoom"
 include { annotate_ProtLoom_idXML } from "${projectDir}/modules/annotate_ProtLoom_idXML"
 include { switch_ProtLoom_qvalue } from "${projectDir}/modules/switch_ProtLoom_qvalue"
 include { export_EasyPQP_reports } from "${projectDir}/modules/export_EasyPQP_reports"
 include { calculate_SHA512 } from "${projectDir}/modules/calculate_SHA512"
 include { prepare_ProteinProphet_idXML } from "${projectDir}/modules/prepare_ProteinProphet_idXML"
 include { convert_ProteinProphet_pepXML } from "${projectDir}/modules/convert_ProteinProphet_pepXML"
-include { run_iProphet } from "${projectDir}/modules/run_iProphet"
-include { run_ProteinProphet } from "${projectDir}/modules/run_ProteinProphet"
+include { integrate_PSM_iProphet } from "${projectDir}/modules/integrate_PSM_iProphet"
+include { infer_ProteinGroups_ProteinProphet } from "${projectDir}/modules/infer_ProteinGroups_ProteinProphet"
 include { convert_ProteinProphet_idXML } from "${projectDir}/modules/convert_ProteinProphet_idXML"
-include { export_ProteinProphet_EasyPQP } from "${projectDir}/modules/export_ProteinProphet_EasyPQP"
+include { export_Fido_graph } from "${projectDir}/modules/export_Fido_graph"
+include { infer_ProteinGroups_Fido } from "${projectDir}/modules/infer_ProteinGroups_Fido"
+include { parse_Fido_groups } from "${projectDir}/modules/parse_Fido_groups"
+include { infer_ProteinGroups_Epifany } from "${projectDir}/modules/infer_ProteinGroups_Epifany"
+include { export_ProteinGroup_EasyPQP } from "${projectDir}/modules/export_ProteinGroup_EasyPQP"
 
 printPrelogue()
 
@@ -156,9 +160,9 @@ workflow {
             // Convert idXML to PIN, add MSBooster features, rescore in
             // Percolator, then transfer the scores back to idXML.
             export_MSBooster_PIN(paired_input)
-            run_MSBooster(export_MSBooster_PIN.out[0], file(params.msbooster_params))
-            run_percolator_PIN(run_MSBooster.out[0])
-            import_percolator_POUT(run_percolator_PIN.out[0])
+            extract_PSMFeatures_MSBooster(export_MSBooster_PIN.out[0], file(params.msbooster_params))
+            score_PSM_PercolatorPIN(extract_PSMFeatures_MSBooster.out[0])
+            import_percolator_POUT(score_PSM_PercolatorPIN.out[0])
             ch_rescored_idXML = import_percolator_POUT.out[0]
         } else {
             // The original OpenMS feature extraction and Percolator route.
@@ -193,8 +197,8 @@ workflow {
         ch_final_mztab_idxml = filter_PSM.out[0]
         ch_checksum_idxml = filter_PSM.out[0]
 
-        // Restore PEP in the unfiltered idXML for downstream iProphet and
-        // ProteinProphet; the filtered OpenMS output retains q-values.
+        // Restore PEP in the unfiltered idXML for downstream inference;
+        // the filtered OpenMS output retains q-values.
         if (params.run_percolator) {
             switch_score_2_pep(score_FDR_OpenMS.out[0])
             ch_idXML_individual = switch_score_2_pep.out[0]
@@ -203,18 +207,35 @@ workflow {
         }
 
         if (params.export_easypqp_reports) {
-            // ProteinProphet groups proteins from the unfiltered Percolator
-            // identifications. The EasyPQP PSM cutoff uses OpenMS q-values.
-            prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
-            convert_ProteinProphet_pepXML(prepare_ProteinProphet_idXML.out[0])
-            prophet_pepxmls = convert_ProteinProphet_pepXML.out[0]
-                .map { sample_name, pepxml, search_engine -> pepxml }
-                .collect()
-            run_iProphet(prophet_pepxmls, file(params.decoy_database))
-            run_ProteinProphet(run_iProphet.out.pepxml, file(params.decoy_database))
-            convert_ProteinProphet_idXML(run_ProteinProphet.out.protxml)
+            // Group the unfiltered Percolator PEP results cohort-wide. Only
+            // ProteinProphet needs the pepXML / iProphet conversion path.
+            // EasyPQP PSM selection remains based on OpenMS q-values.
+            if (params.protein_inference_algorithm == 'ProteinProphet') {
+                prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
+                convert_ProteinProphet_pepXML(prepare_ProteinProphet_idXML.out[0])
+                prophet_pepxmls = convert_ProteinProphet_pepXML.out[0]
+                    .map { sample_name, pepxml, search_engine -> pepxml }
+                    .collect()
+                integrate_PSM_iProphet(prophet_pepxmls, file(params.decoy_database))
+                infer_ProteinGroups_ProteinProphet(integrate_PSM_iProphet.out.pepxml, file(params.decoy_database))
+                convert_ProteinProphet_idXML(infer_ProteinGroups_ProteinProphet.out.protxml)
+                ch_protein_groups = convert_ProteinProphet_idXML.out.groups
+            } else {
+                cohort_pep_idxmls = ch_rescored_idXML
+                    .map { sample_name, idxml, search_engine -> idxml }
+                    .collect()
+                if (params.protein_inference_algorithm == 'Fido') {
+                    export_Fido_graph(cohort_pep_idxmls)
+                    infer_ProteinGroups_Fido(export_Fido_graph.out.graph, export_Fido_graph.out.proteins)
+                    parse_Fido_groups(infer_ProteinGroups_Fido.out.results, export_Fido_graph.out.mapping)
+                    ch_protein_groups = parse_Fido_groups.out.groups
+                } else {
+                    infer_ProteinGroups_Epifany(cohort_pep_idxmls)
+                    ch_protein_groups = infer_ProteinGroups_Epifany.out.groups
+                }
+            }
 
-            prophet_easypqp_input = score_FDR_OpenMS.out[0]
+            group_easypqp_input = score_FDR_OpenMS.out[0]
                 .join(mzML_by_sample, by: 0)
                 .collect(flat: false)
                 .map { rows ->
@@ -226,7 +247,7 @@ workflow {
                     def staged = ordered.collect { it[1] } + raw_files
                     def names = staged.collect { it.name }
                     if (names.size() != names.toSet().size()) {
-                        error 'ProteinProphet EasyPQP inputs must have unique basenames for staging.'
+                        error 'Protein grouping EasyPQP inputs must have unique basenames for staging.'
                     }
                     def manifest = ordered.collect { row ->
                         [sample_name: row[0], idxml: row[1].name,
@@ -235,10 +256,7 @@ workflow {
                     [groovy.json.JsonOutput.toJson(manifest),
                      ordered.collect { it[1] }, raw_files]
                 }
-            export_ProteinProphet_EasyPQP(
-                prophet_easypqp_input,
-                convert_ProteinProphet_idXML.out.groups
-            )
+            export_ProteinGroup_EasyPQP(group_easypqp_input, ch_protein_groups)
         }
     }
 
@@ -338,31 +356,31 @@ workflow {
         protloom_markers = protloom_project.markers
 
         local_input = protloom_samples.filter { it.size() == 1 }.flatMap { it }
-        run_ProtLoom_localInfer(local_input, protloom_database, protloom_entries,
+        infer_ProteinGroups_ProtLoomLocal(local_input, protloom_database, protloom_entries,
             protloom_annotation_ids, protloom_gtfs, protloom_markers)
 
         joint_input = protloom_samples.filter { it.size() > 1 }
             .map { rows -> [rows.collect { it[0] }, rows.collect { it[1] }] }
         // Multi-sample inference shares one cohort graph but produces a
         // separate assignment and FDR result for each sample.
-        run_ProtLoom_jointGraph(joint_input, protloom_database, protloom_entries,
+        build_CohortGraph_ProtLoom(joint_input, protloom_database, protloom_entries,
             protloom_markers)
-        joint_infer_input = run_ProtLoom_jointGraph.out.graph
+        joint_infer_input = build_CohortGraph_ProtLoom.out.graph
             .combine(protloom_idxml)
             .map { graph, sample_name, idxml, annotation_id ->
                 [sample_name, idxml, graph, annotation_id]
             }
-        run_ProtLoom_jointInfer(joint_infer_input, protloom_database, protloom_entries,
+        infer_ProteinGroups_ProtLoomJoint(joint_infer_input, protloom_database, protloom_entries,
             protloom_annotation_ids, protloom_gtfs, protloom_markers)
 
-        inference_results = run_ProtLoom_localInfer.out.inference
-            .mix(run_ProtLoom_jointInfer.out.inference)
-        run_ProtLoom_computeFDR(inference_results, protloom_markers)
+        inference_results = infer_ProteinGroups_ProtLoomLocal.out.inference
+            .mix(infer_ProteinGroups_ProtLoomJoint.out.inference)
+        score_FDR_ProtLoom(inference_results, protloom_markers)
 
         // Join by sample_name: inference contributes idXML/assignments, while
         // computeFDR contributes PSM and protein-group q-value tables.
         protloom_annotation_input = inference_results
-            .join(run_ProtLoom_computeFDR.out[0], by: 0)
+            .join(score_FDR_ProtLoom.out[0], by: 0)
             .map { sample_name, idxml, group_table, assignments, psm_fdr, group_fdr ->
                 [sample_name, idxml, assignments, psm_fdr, group_fdr]
             }
@@ -396,7 +414,7 @@ workflow {
             // EasyPQP reports are cohort-wide. Collect all sample inputs into
             // one task after joining their FDR tables and matching mzML lists.
             easypqp_input = inference_results
-                .join(run_ProtLoom_computeFDR.out[0], by: 0)
+                .join(score_FDR_ProtLoom.out[0], by: 0)
                 .join(mzML_by_sample, by: 0)
                 .collect(flat: false)
                 .map { rows ->

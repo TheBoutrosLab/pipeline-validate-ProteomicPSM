@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export EasyPQP tables from OpenMS PSM q-values and ProteinProphet groups."""
+"""Export EasyPQP tables from OpenMS PSM q-values and inferred protein groups."""
 
 import argparse
 import json
@@ -10,35 +10,47 @@ from ExportEasyPQPReports import match_raw_file, write_rows
 from IdXMLPinBridge import as_text, load_idxml, meta_text, scan_number
 
 
-def protein_groups(path, cutoff, decoy_string):
+def protein_groups(path, cutoff, decoy_string, algorithm):
     """Index accepted target protein groups by their member accessions."""
-    runs, _ = load_idxml(path)
-    if not runs:
-        raise ValueError("ProteinProphet idXML contains no protein identifications")
+    if algorithm == "Fido":
+        raw_groups = json.loads(Path(path).read_text())
+        groups = [(float(group["probability"]),
+                   [str(accession) for accession in group["accessions"]])
+                  for group in raw_groups]
+    else:
+        runs, _ = load_idxml(path)
+        if not runs:
+            raise ValueError(f"{algorithm} idXML contains no protein identifications")
+        groups = []
+        for run in runs:
+            run_groups = (run.getProteinGroups() if algorithm == "ProteinProphet"
+                          else run.getIndistinguishableProteins())
+            groups.extend((group.probability,
+                           [as_text(accession) for accession in group.accessions])
+                          for group in run_groups)
     accession_groups = defaultdict(set)
     leaders = {}
     accepted = 0
-    for run in runs:
-        for group in run.getProteinGroups():
-            if group.probability < cutoff:
-                continue
-            members = [as_text(accession) for accession in group.accessions]
-            if not members or any(member.startswith(decoy_string) for member in members):
-                continue
-            identity = tuple(sorted(members))
-            leaders[identity] = members[0]
-            for accession in members:
-                accession_groups[accession].add(identity)
-            accepted += 1
+    for probability, members in groups:
+        if probability < cutoff:
+            continue
+        if not members or any(member.startswith(decoy_string) for member in members):
+            continue
+        identity = tuple(sorted(members))
+        leaders[identity] = members[0]
+        for accession in members:
+            accession_groups[accession].add(identity)
+        accepted += 1
     if not accepted:
-        raise ValueError("No target ProteinProphet groups pass the probability cutoff")
+        raise ValueError(f"No target {algorithm} groups pass the probability cutoff")
     return accession_groups, leaders, accepted
 
 
-def export(manifest, group_path, threshold, group_cutoff, decoy_string, prefix):
+def export(manifest, group_path, threshold, group_cutoff, decoy_string, prefix,
+           algorithm):
     """Write PSM, peptide, and exclusion-summary tables for a cohort."""
     accession_groups, leaders, accepted_groups = protein_groups(
-        group_path, group_cutoff, decoy_string
+        group_path, group_cutoff, decoy_string, algorithm
     )
     selected = {}
     tied_spectra = set()
@@ -170,6 +182,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--groups", required=True, type=Path)
+    parser.add_argument("--algorithm", required=True,
+                        choices=("ProteinProphet", "Fido", "Epifany"))
     parser.add_argument("--psm-qvalue", required=True, type=float)
     parser.add_argument("--min-protein-probability", required=True, type=float)
     parser.add_argument("--decoy-string", required=True)
@@ -184,7 +198,8 @@ def main():
         for c in args.output_prefix):
         parser.error("--output-prefix must be a valid dataset ID")
     export(json.loads(args.manifest.read_text()), args.groups, args.psm_qvalue,
-           args.min_protein_probability, args.decoy_string, args.output_prefix)
+           args.min_protein_probability, args.decoy_string, args.output_prefix,
+           args.algorithm)
 
 
 if __name__ == "__main__":
