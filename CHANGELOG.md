@@ -1,6 +1,8 @@
 # Changelog
 
-## [Unreleased] - 2026-10-23
+## [Unreleased]
+
+## [2.2.0] - 2026-10-23
 
 ### Added
 
@@ -65,4 +67,5 @@
 [1.0.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v1.0.0...v1.0.1
 [2.0.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v1.0.1...v2.0.0
 [2.1.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.0.0...v2.1.0
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.1.0...HEAD
+[2.2.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.1.0...v2.2.0
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.0...HEAD
