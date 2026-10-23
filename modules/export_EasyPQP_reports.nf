@@ -21,7 +21,8 @@ process export_EasyPQP_reports {
     JSON
     python3 ${projectDir}/src/ExportEasyPQPReports.py \\
         --manifest easypqp_export_manifest.json \\
-        --fdr ${params.protloom_easypqp_fdr} \\
+        --psm-qvalue ${params.easypqp_psm_qvalue} \\
+        --group-qvalue ${params.protloom_easypqp_group_qvalue} \\
         --output-prefix ${params.dataset_id}
     """
 }

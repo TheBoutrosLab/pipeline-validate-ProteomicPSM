@@ -87,10 +87,10 @@ proteinprophet_min_probability:
   type: Number
   required: false
   help: Minimum ProteinProphet group probability for EasyPQP export; groups below the cutoff are excluded. Default 0.
-proteinprophet_easypqp_psm_qvalue:
+easypqp_psm_qvalue:
   type: Number
   required: false
-  help: Maximum OpenMS PSM q-value for non-ProtLoom EasyPQP export; default 0.01.
+  help: Maximum PSM q-value for EasyPQP export in every inference route; default 0.01.
 protloom_version:
   type: String
   required: false
@@ -118,10 +118,10 @@ protloom_enzyme:
   type: String
   required: false
   help: ProtLoom cleavage rule name, default trypsin.
-protloom_easypqp_fdr:
+protloom_easypqp_group_qvalue:
   type: Number
   required: false
-  help: Maximum ProtLoom PSM and protein-group q-value for EasyPQP report export; default 0.01.
+  help: Maximum ProtLoom protein-group q-value for EasyPQP export; default 0.01.
 protloom_idxml_primary_score:
   type: String
   required: false
