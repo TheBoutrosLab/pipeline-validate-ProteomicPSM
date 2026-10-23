@@ -1,6 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [Unreleased] - 2026-10-23
+
+### Added
+
+- Add selectable standalone Fido and OpenMS Epifany cohort protein grouping for non-ProtLoom EasyPQP export, retaining ProteinProphet as the default.
+
+### Changed
+
+- Use `ghcr.io/theboutroslab/fido:1.0` for standalone Fido protein inference.
+- Rename the MSBooster, Percolator PIN, iProphet, PeptideProphet, ProtLoom, and protein-grouping processes to describe their actions; update the workflow schematic to show the ProteinProphet, Fido, Epifany, and ProtLoom routes.
 
 ## [2.1.0] - 2026-10-22
 

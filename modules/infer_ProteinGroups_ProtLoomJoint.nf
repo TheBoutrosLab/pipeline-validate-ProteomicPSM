@@ -1,4 +1,4 @@
-process run_ProtLoom_jointInfer {
+process infer_ProteinGroups_ProtLoomJoint {
     container params.docker_image_protloom
 
     publishDir { "${params.final_output_dir}/${sample_name}/ProtLoom-${params.protloom_version}/output" },

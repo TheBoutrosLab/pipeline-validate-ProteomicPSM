@@ -1,4 +1,4 @@
-process run_MSBooster {
+process extract_PSMFeatures_MSBooster {
     container params.docker_image_fragpipe
 
     input:

@@ -28,7 +28,7 @@ FLAG_MAPPER = [
     'peptideprophet_ppm': '--ppm'
 ]
 
-process run_PeptideProphet {
+process score_PSM_PeptideProphet {
     container params.docker_image_philosopher
 
     publishDir { "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },

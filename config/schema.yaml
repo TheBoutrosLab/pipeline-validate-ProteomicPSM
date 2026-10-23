@@ -66,7 +66,23 @@ dataset_id:
 export_easypqp_reports:
   type: Bool
   required: false
-  help: Export dataset-prefixed EasyPQP reports using ProtLoom or, when disabled, iProphet and ProteinProphet.
+  help: Export dataset-prefixed EasyPQP reports using ProtLoom or the selected non-ProtLoom protein inference algorithm.
+protein_inference_algorithm:
+  type: String
+  required: false
+  help: Non-ProtLoom protein grouping backend, ProteinProphet (default), Fido, or Epifany; Epiphany is an alias.
+docker_image_fido:
+  type: String
+  required: false
+  help: Standalone Fido container containing FidoChooseParameters.
+fido_min_probability:
+  type: Number
+  required: false
+  help: Minimum Fido group posterior probability for EasyPQP export; default 0.01.
+epifany_min_probability:
+  type: Number
+  required: false
+  help: Minimum Epifany group posterior probability for EasyPQP export; default 0.01.
 proteinprophet_min_probability:
   type: Number
   required: false
@@ -74,7 +90,7 @@ proteinprophet_min_probability:
 proteinprophet_easypqp_psm_qvalue:
   type: Number
   required: false
-  help: Maximum OpenMS PSM q-value for ProteinProphet EasyPQP export; default 0.01.
+  help: Maximum OpenMS PSM q-value for non-ProtLoom EasyPQP export; default 0.01.
 protloom_version:
   type: String
   required: false

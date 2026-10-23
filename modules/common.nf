@@ -25,7 +25,7 @@ def printPrelogue(){
     exclude_args = [
         'input_csv', 'decoy_database', 'output_dir', 'openms_version',
         'docker_image_openms', 'docker_image_pyopenms',
-        'docker_image_fragpipe', 'docker_image_protloom',
+        'docker_image_fragpipe', 'docker_image_protloom', 'docker_image_fido',
         'max_cpus', 'max_memory', 'philosopher_version', 'intermediate_file_dir', 'process_log_dir',
         'pipeline_log_dir'
     ]
@@ -47,8 +47,13 @@ def printPrelogue(){
     def images = [OpenMS: params.docker_image_openms,
                   pyOpenMS: params.docker_image_pyopenms]
     if ((params.run_percolator && params.percolator_workflow == 'msbooster') ||
-        (params.export_easypqp_reports && !params.run_protloom)) {
+        (params.export_easypqp_reports && !params.run_protloom &&
+         params.protein_inference_algorithm == 'ProteinProphet')) {
         images.FragPipe = params.docker_image_fragpipe
+    }
+    if (params.export_easypqp_reports && !params.run_protloom &&
+        params.protein_inference_algorithm == 'Fido') {
+        images.Fido = params.docker_image_fido
     }
     if (params.run_protloom) {
         images.ProtLoom = params.docker_image_protloom

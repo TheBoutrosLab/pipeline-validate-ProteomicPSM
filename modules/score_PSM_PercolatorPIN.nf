@@ -1,4 +1,4 @@
-process run_percolator_PIN {
+process score_PSM_PercolatorPIN {
     container params.docker_image_fragpipe
 
     input:
