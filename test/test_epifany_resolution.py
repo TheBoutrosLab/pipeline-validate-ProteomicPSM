@@ -20,9 +20,11 @@ class Sequence:
         self.value = value
 
     def toUniModString(self):
+        """Return the fixture's modified sequence."""
         return self.value
 
     def toUnmodifiedString(self):
+        """Return the fixture's unmodified sequence."""
         return self.value
 
 
@@ -34,19 +36,24 @@ class Hit:
         self.accessions = accessions
 
     def getSequence(self):
+        """Return the PSM peptide sequence."""
         return Sequence(self.row["peptide"])
 
     def getCharge(self):
+        """Return the fixture charge."""
         return 2
 
     def getScore(self):
+        """Return the fixture q-value."""
         return self.row["q_value"]
 
     def getPeptideEvidences(self):
+        """Return protein evidence objects for the fixture accessions."""
         return [types.SimpleNamespace(getProteinAccession=lambda name=name: name)
                 for name in self.accessions]
 
     def metaValueExists(self, _key):
+        """Indicate that this fixture hit has no metadata."""
         return False
 
 
@@ -58,18 +65,23 @@ class Peptide:
         self.hit = Hit(row, accessions)
 
     def getHits(self):
+        """Return the single fixture hit."""
         return [self.hit]
 
     def getRT(self):
+        """Use the scan number as a stable fixture retention time."""
         return float(self.row["scan"])
 
     def getMZ(self):
+        """Return a shared precursor m/z for the fixture PSMs."""
         return 500.0
 
     def getScoreType(self):
+        """Identify the fixture scores as q-values."""
         return "q-value"
 
     def isHigherScoreBetter(self):
+        """Mark fixture q-values as lower-is-better scores."""
         return False
 
 
@@ -114,7 +126,7 @@ class EpifanyExportTest(unittest.TestCase):
 
         with patch.multiple(
             self.exporter,
-            as_text=lambda value: str(value),
+            as_text=str,
             load_idxml=load,
             meta_text=metadata,
             scan_number=lambda native: int(native.split("=")[1]),
@@ -163,7 +175,7 @@ class EpifanyExportTest(unittest.TestCase):
 
         with patch.multiple(
             self.exporter,
-            as_text=lambda value: str(value),
+            as_text=str,
             load_idxml=load,
             meta_text=lambda pid, _key: "scan=7",
             scan_number=lambda _reference: 7,
@@ -201,9 +213,11 @@ class EpifanyExportTest(unittest.TestCase):
                 self.index = index
 
             def metaValueExists(self, key):
+                """Report that only an idXML merge index is available."""
                 return key == "id_merge_index"
 
             def getMetaValue(self, _key):
+                """Return this file's local or cohort merge index."""
                 return self.index
 
         paths = [Path("sample_a.mzML"), Path("sample_b.mzML")]
