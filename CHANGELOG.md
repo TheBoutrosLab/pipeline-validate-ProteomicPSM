@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support Epifany's greedy shared-peptide resolution and use its resolved peptide evidence for EasyPQP group assignment; report zero, one, and multiple-group PSM counts.
+
 ## [2.2.1] - 2026-10-23
 
 ### Changed

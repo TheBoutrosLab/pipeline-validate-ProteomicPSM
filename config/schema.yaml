@@ -83,6 +83,11 @@ epifany_min_probability:
   type: Number
   required: false
   help: Minimum Epifany group posterior probability for EasyPQP export; default 0.01.
+epifany_greedy_group_resolution:
+  type: String
+  required: false
+  choices: [none, remove_associations_only, remove_proteins_wo_evidence]
+  help: Epifany shared-peptide resolution mode; default none.
 proteinprophet_min_probability:
   type: Number
   required: false
