@@ -81,7 +81,7 @@ def match_raw_file(
     merge_index = meta_text(pid, "id_merge_index")
     if merge_index:
         index = int(merge_index)
-        if index < len(source_stems):
+        if 0 <= index < len(source_stems):
             matches = [path for path in paths if path.stem.lower() == source_stems[index]]
             if len(matches) == 1:
                 return matches[0]

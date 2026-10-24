@@ -141,6 +141,79 @@ class EpifanyExportTest(unittest.TestCase):
         self.assertEqual(resolved_summary["psms_retained_after_resolution"], 2)
         self.assertEqual(resolved_summary["psms_at_or_below_qvalue"], 2)
 
+    def test_same_spectrum_coordinates_in_two_samples(self):
+        """Associate each PSM with evidence from its own mzML file."""
+        first = {"scan": 7, "peptide": "SAME", "q_value": 0.001,
+                 "raw": "sample_a.mzML"}
+        second = {**first, "raw": "sample_b.mzML"}
+        groups = [types.SimpleNamespace(probability=0.99, accessions=["A", "B"])]
+        run = types.SimpleNamespace(
+            getIndistinguishableProteins=lambda: groups,
+            getPrimaryMSRunPath=lambda paths: paths.extend(
+                ["sample_a.mzML", "sample_b.mzML"]
+            ),
+        )
+        inferred = [Peptide(first, ["A"]), Peptide(second, ["B"])]
+        tables = {}
+
+        def load(path):
+            if path == "groups.idXML":
+                return [run], inferred
+            return [run], [Peptide(first if path == "a.idXML" else second, ["A", "B"])]
+
+        with patch.multiple(
+            self.exporter,
+            as_text=lambda value: str(value),
+            load_idxml=load,
+            meta_text=lambda pid, _key: "scan=7",
+            scan_number=lambda _reference: 7,
+            match_raw_file=lambda pid, *_args: Path(pid.row["raw"]),
+            write_rows=lambda path, _columns, rows: tables.setdefault(path, list(rows)),
+        ):
+            self.exporter.export(
+                [{"sample_name": "a", "idxml": "a.idXML", "mzmls": ["sample_a.mzML"]},
+                 {"sample_name": "b", "idxml": "b.idXML", "mzmls": ["sample_b.mzML"]}],
+                "groups.idXML", 0.01, 0.01, "DECOY_", "test", "Epifany"
+            )
+        self.assertEqual(
+            {row["Spectrum File"] for row in tables["test-psm.tsv"]},
+            {"sample_a.mzML", "sample_b.mzML"},
+        )
+        summary = {row["metric"]: row["count"]
+                   for row in tables["test-easypqp_export_summary.tsv"]}
+        self.assertEqual(summary["psms_without_epifany_match"], 0)
+        self.assertEqual(summary["psms_matching_one_group"], 2)
+
+    def test_merge_indices_are_resolved_with_each_files_run_paths(self):
+        """Local and cohort merge indices can identify the same mzML file."""
+        pyopenms = types.ModuleType("pyopenms")
+        with patch.dict(sys.modules, {"pyopenms": pyopenms}):
+            spec = importlib.util.spec_from_file_location(
+                "ProteomicIO_test", ROOT / "src/ProteomicIO.py"
+            )
+            helper = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(helper)
+
+        class Origin:
+            """Expose only the merge index used to locate a source path."""
+
+            def __init__(self, index):
+                self.index = index
+
+            def metaValueExists(self, key):
+                return key == "id_merge_index"
+
+            def getMetaValue(self, _key):
+                return self.index
+
+        paths = [Path("sample_a.mzML"), Path("sample_b.mzML")]
+        local = helper.match_raw_file(Origin(0), 7, paths, ["sample_a"], {})
+        merged = helper.match_raw_file(
+            Origin(1), 7, paths, ["sample_b", "sample_a"], {}
+        )
+        self.assertEqual(local, Path("sample_a.mzML"))
+        self.assertEqual(merged, local)
+
 
 if __name__ == "__main__":
     unittest.main()

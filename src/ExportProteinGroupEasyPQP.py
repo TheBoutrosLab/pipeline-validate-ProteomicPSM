@@ -12,9 +12,9 @@ from __future__ import annotations
 import argparse
 import json
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, MutableMapping, Sequence
 
 import pyopenms as oms
 
@@ -22,7 +22,87 @@ from ProteomicIO import as_text, load_idxml, match_raw_file, meta_text, scan_num
 
 
 GroupKey = tuple[str, ...]
-EpifanyEvidenceIndex = dict[tuple[str, str, int], list[tuple[float, float, frozenset[str]]]]
+
+
+@dataclass(frozen=True)
+class EpifanyEvidenceKey:
+    """Identify a PSM within its mzML run, independent of idXML merge indices."""
+
+    raw_name: str
+    spectrum_reference: str
+    modified_sequence: str
+    charge: int
+
+    @classmethod
+    def from_psm(
+        cls, pid: oms.PeptideIdentification, hit: oms.PeptideHit, raw_name: str
+    ) -> EpifanyEvidenceKey:
+        """Build the same lookup key from either Epifany or q-value idXML."""
+        return cls(raw_name, meta_text(pid, "spectrum_reference"),
+                   as_text(hit.getSequence().toUniModString()), hit.getCharge())
+
+
+@dataclass(frozen=True)
+class EpifanyEvidence:
+    """Protein links and coordinates of one Epifany peptide identification."""
+
+    rt: float
+    mz: float
+    accessions: frozenset[str]
+
+
+@dataclass
+class EpifanyEvidenceIndex:
+    """Find Epifany's protein links for PSMs in the per-engine q-value idXMLs."""
+
+    by_psm: dict[EpifanyEvidenceKey, list[EpifanyEvidence]] = field(default_factory=dict)
+
+    @classmethod
+    def from_peptides(
+        cls,
+        peptides: Iterable[oms.PeptideIdentification],
+        raw_paths: Sequence[Path],
+        source_stems: Sequence[str],
+        scan_cache: MutableMapping[Path, set[int]],
+    ) -> EpifanyEvidenceIndex:
+        """Index Epifany's PSM-level protein links by resolved mzML origin.
+
+        Epifany rewrites id_merge_index when merging input idXML files, so
+        resolve it through Epifany's own primary MS run paths before matching.
+        """
+        index = cls()
+        for pid in peptides:
+            hits = pid.getHits()
+            if not hits:
+                continue
+            hit = hits[0]
+            reference = meta_text(pid, "spectrum_reference")
+            raw = match_raw_file(pid, scan_number(reference), raw_paths,
+                                 source_stems, scan_cache)
+            key = EpifanyEvidenceKey.from_psm(pid, hit, raw.name)
+            evidence = EpifanyEvidence(
+                pid.getRT(), pid.getMZ(),
+                frozenset(as_text(item.getProteinAccession())
+                          for item in hit.getPeptideEvidences()),
+            )
+            index.by_psm.setdefault(key, []).append(evidence)
+        return index
+
+    def match(
+        self, pid: oms.PeptideIdentification, hit: oms.PeptideHit, raw_name: str
+    ) -> frozenset[str] | None:
+        """Return matching protein links, or None if Epifany lacks this PSM.
+
+        RT and m/z distinguish records sharing the same lookup key. Conflicting
+        matches fail rather than assigning a PSM to an arbitrary group.
+        """
+        key = EpifanyEvidenceKey.from_psm(pid, hit, raw_name)
+        matches = {item.accessions for item in self.by_psm.get(key, ())
+                   if abs(item.rt - pid.getRT()) < 0.001
+                   and abs(item.mz - pid.getMZ()) < 0.0001}
+        if len(matches) > 1:
+            raise ValueError(f"Conflicting Epifany peptide evidence for {key}")
+        return next(iter(matches)) if matches else None
 
 
 @dataclass
@@ -32,7 +112,7 @@ class AcceptedProteinGroups:
     ``accession_groups`` maps each protein to every accepted group containing it.
     A group key is its sorted member tuple, while ``leaders`` retains the first
     accession reported by the inference tool for EasyPQP's Protein ID field.
-    ``epifany_evidence`` is present only when Epifany supplies resolved links.
+    ``epifany_evidence`` is present for Epifany in every resolution mode.
     """
 
     accession_groups: dict[str, set[GroupKey]]
@@ -42,7 +122,8 @@ class AcceptedProteinGroups:
 
     @classmethod
     def load(
-        cls, path: str | Path, cutoff: float, decoy_string: str, algorithm: str
+        cls, path: str | Path, cutoff: float, decoy_string: str, algorithm: str,
+        raw_paths: Sequence[Path], scan_cache: MutableMapping[Path, set[int]],
     ) -> AcceptedProteinGroups:
         """Load target groups above the probability cutoff from inference output."""
         epifany_evidence = None
@@ -58,7 +139,12 @@ class AcceptedProteinGroups:
             if algorithm == "Epifany":
                 # Greedy resolution changes these peptide evidences in Epifany's
                 # output idXML; the separate q-value idXML retains the input links.
-                epifany_evidence = cls.index_epifany_evidence(peptides)
+                source_paths = []
+                runs[0].getPrimaryMSRunPath(source_paths)
+                source_stems = [Path(as_text(source)).stem.lower() for source in source_paths]
+                epifany_evidence = EpifanyEvidenceIndex.from_peptides(
+                    peptides, raw_paths, source_stems, scan_cache
+                )
             groups = []
             for run in runs:
                 # ProteinProphet writes protein groups; Epifany writes its
@@ -86,46 +172,13 @@ class AcceptedProteinGroups:
             raise ValueError(f"No target {algorithm} groups pass the probability cutoff")
         return cls(accession_groups, leaders, accepted, epifany_evidence)
 
-    @staticmethod
-    def index_epifany_evidence(
-        peptides: Iterable[oms.PeptideIdentification],
-    ) -> EpifanyEvidenceIndex:
-        """Index Epifany's PSM-level protein links for later q-value PSM matching.
-
-        Spectrum reference, modified sequence, and charge form the lookup key.
-        RT and m/z remain in each entry to distinguish otherwise identical keys.
-        """
-        index = defaultdict(list)
-        for pid in peptides:
-            hits = pid.getHits()
-            if not hits:
-                continue
-            hit = hits[0]
-            key = (meta_text(pid, "spectrum_reference"),
-                   as_text(hit.getSequence().toUniModString()), hit.getCharge())
-            accessions = frozenset(as_text(evidence.getProteinAccession())
-                                   for evidence in hit.getPeptideEvidences())
-            index[key].append((pid.getRT(), pid.getMZ(), accessions))
-        return index
-
     def match_psm_epifany_evidence(
-        self, pid: oms.PeptideIdentification, hit: oms.PeptideHit
+        self, pid: oms.PeptideIdentification, hit: oms.PeptideHit, raw_name: str
     ) -> frozenset[str] | None:
-        """Return the proteins Epifany associates with this q-value PSM.
-
-        A missing match returns ``None``; contradictory matches raise an error
-        rather than assigning a PSM to an arbitrary protein group. RT and m/z
-        tolerances accommodate small idXML serialization differences.
-        """
+        """Return the proteins Epifany associates with this q-value PSM."""
         if self.epifany_evidence is None:
             raise ValueError("Epifany peptide evidence was not loaded")
-        key = (meta_text(pid, "spectrum_reference"),
-               as_text(hit.getSequence().toUniModString()), hit.getCharge())
-        matches = {accessions for rt, mz, accessions in self.epifany_evidence.get(key, ())
-                   if abs(rt - pid.getRT()) < 0.001 and abs(mz - pid.getMZ()) < 0.0001}
-        if len(matches) > 1:
-            raise ValueError(f"Conflicting Epifany peptide evidence for {key}")
-        return next(iter(matches)) if matches else None
+        return self.epifany_evidence.match(pid, hit, raw_name)
 
     def groups_for_accessions(self, accessions: Iterable[str]) -> set[GroupKey]:
         """Find every accepted group linked to any supplied protein accession."""
@@ -148,20 +201,10 @@ def export(
     Epifany's output idXML for peptide-to-protein links when Epifany is selected;
     the other algorithms use links already present in the q-value idXML.
     """
-    accepted_groups = AcceptedProteinGroups.load(
-        group_path, group_cutoff, decoy_string, algorithm
-    )
-    selected = {}
-    tied_spectra = set()
-    passing_psms = 0
-    unmapped_psms = 0
+    samples = list(manifest)
     raw_owner = {}
-    scan_cache = {}
-    mapped_psms = 0
-    group_match_counts = [0, 0, 0]
-    unmatched_epifany_psms = 0
-
-    for sample in manifest:
+    all_raw_paths = []
+    for sample in samples:
         sample_name = sample["sample_name"]
         raw_paths = [Path(name) for name in sample["mzmls"]]
         if not raw_paths:
@@ -172,6 +215,22 @@ def export(
             owner = raw_owner.setdefault(raw.name, sample_name)
             if owner != sample_name:
                 raise ValueError(f"mzML basename occurs in multiple samples: {raw.name}")
+            if raw not in all_raw_paths:
+                all_raw_paths.append(raw)
+    selected = {}
+    tied_spectra = set()
+    passing_psms = 0
+    unmapped_psms = 0
+    scan_cache = {}
+    mapped_psms = 0
+    group_match_counts = [0, 0, 0]
+    unmatched_epifany_psms = 0
+    accepted_groups = AcceptedProteinGroups.load(
+        group_path, group_cutoff, decoy_string, algorithm, all_raw_paths, scan_cache
+    )
+
+    for sample in samples:
+        raw_paths = [Path(name) for name in sample["mzmls"]]
 
         runs, peptides = load_idxml(sample["idxml"])
         source_stems = []
@@ -197,6 +256,9 @@ def export(
             ).lower():
                 continue
             passing_psms += 1
+            native_id = meta_text(pid, "spectrum_reference")
+            scan = scan_number(native_id)
+            raw = match_raw_file(pid, scan, raw_paths, source_stems, scan_cache)
             # Only Epifany can revise peptide-to-protein evidence during
             # inference. Its output replaces links from the q-value idXML.
             evidence_accessions = {
@@ -204,7 +266,7 @@ def export(
                 for evidence in hit.getPeptideEvidences()
             }
             if algorithm == "Epifany":
-                resolved = accepted_groups.match_psm_epifany_evidence(pid, hit)
+                resolved = accepted_groups.match_psm_epifany_evidence(pid, hit, raw.name)
                 if resolved is None:
                     unmatched_epifany_psms += 1
                     evidence_accessions = set()
@@ -219,9 +281,6 @@ def export(
                 continue
             mapped_psms += 1
             group = next(iter(groups))
-            native_id = meta_text(pid, "spectrum_reference")
-            scan = scan_number(native_id)
-            raw = match_raw_file(pid, scan, raw_paths, source_stems, scan_cache)
             charge = hit.getCharge()
             peptide = as_text(hit.getSequence().toUnmodifiedString())
             key = (raw.name, scan, charge)
