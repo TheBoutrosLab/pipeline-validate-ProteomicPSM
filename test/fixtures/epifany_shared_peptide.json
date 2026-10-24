@@ -1,0 +1,8 @@
+{
+  "groups": [["A"], ["B"]],
+  "psms": [
+    {"scan": 1, "peptide": "UNIQUE", "q_value": 0.001, "input": ["A"], "none": ["A"], "resolved": ["A"]},
+    {"scan": 2, "peptide": "SHARED", "q_value": 0.002, "input": ["A", "B"], "none": ["A", "B"], "resolved": ["A"]},
+    {"scan": 3, "peptide": "HIGHQ", "q_value": 0.02, "input": ["B"], "none": ["B"], "resolved": ["B"]}
+  ]
+}

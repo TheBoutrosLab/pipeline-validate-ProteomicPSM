@@ -7,7 +7,7 @@ import math
 import re
 from pathlib import Path
 
-from IdXMLPinBridge import as_text, load_idxml
+from ProteomicIO import as_text, load_idxml
 
 
 GROUP_LINE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\s*\{([^}]*)\}\s*$")

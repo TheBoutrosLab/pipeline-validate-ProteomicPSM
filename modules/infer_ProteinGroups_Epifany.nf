@@ -15,6 +15,7 @@ process infer_ProteinGroups_Epifany {
     Epifany \\
         -in ${input_idxmls.join(' ')} \\
         -out ${params.dataset_id}-Epifany.idXML \\
+        -greedy_group_resolution ${params.epifany_greedy_group_resolution} \\
         -threads ${task.cpus}
     """
 }

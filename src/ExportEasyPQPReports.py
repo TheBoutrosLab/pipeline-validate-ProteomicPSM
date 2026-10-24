@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """Export the minimal FragPipe-style reports consumed by EasyPQP library mode."""
 
+from __future__ import annotations
+
 import argparse
 import csv
 import json
 from collections import defaultdict
 from pathlib import Path
+from typing import Any, Iterable, Mapping, Sequence
 
-from IdXMLPinBridge import as_text, load_idxml, meta_text, mzml_scans, scan_number
+from ProteomicIO import as_text, load_idxml, match_raw_file, meta_text, scan_number, write_rows
 
 
-def read_rows(path, required):
+def read_rows(path: str | Path, required: Iterable[str]) -> list[dict[str, str]]:
     """Read a TSV and verify its required columns."""
     with Path(path).open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle, delimiter="\t")
@@ -20,20 +23,18 @@ def read_rows(path, required):
         return list(reader)
 
 
-def write_rows(path, fields, rows):
-    """Write rows to a UTF-8 TSV file."""
-    with Path(path).open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, delimiter="\t", lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
-
-
-def psm_key(native_id, unimod_sequence, charge):
+def psm_key(native_id: str, unimod_sequence: str, charge: int | str) -> tuple[str, str, int]:
     """Build a key shared by ProtLoom PSM rows and idXML hits."""
     return native_id, unimod_sequence, int(charge)
 
 
-def matching_psm_index(candidates, rt, mz, sample_name, key):
+def matching_psm_index(
+    candidates: Sequence[tuple[Mapping[str, str], str, str]],
+    rt: float,
+    mz: float,
+    sample_name: str,
+    key: tuple[str, str, int],
+) -> int | None:
     """Find the only PSM with matching spectrum coordinates, if any."""
     matching = [index for index, (row, _, _) in enumerate(candidates)
                 if abs(float(row["rt"]) - rt) < 0.001
@@ -43,38 +44,12 @@ def matching_psm_index(candidates, rt, mz, sample_name, key):
     return matching[0] if matching else None
 
 
-def match_raw_file(pid, scan, paths, source_stems, scan_cache):
-    """Find a PSM's mzML file from provenance or an unambiguous scan number."""
-    if len(paths) == 1:
-        return paths[0]
-    for key in ("base_name", "file_origin"):
-        origin = meta_text(pid, key)
-        if origin:
-            matches = [path for path in paths if path.stem.lower() == Path(origin).stem.lower()]
-            if len(matches) == 1:
-                return matches[0]
-    merge_index = meta_text(pid, "id_merge_index")
-    if merge_index:
-        index = int(merge_index)
-        if index < len(source_stems):
-            matches = [path for path in paths if path.stem.lower() == source_stems[index]]
-            if len(matches) == 1:
-                return matches[0]
-    candidates = []
-    for path in paths:
-        if path not in scan_cache:
-            scan_cache[path] = mzml_scans(path)
-        if scan in scan_cache[path]:
-            candidates.append(path)
-    if len(candidates) != 1:
-        raise ValueError(
-            f"Scan {scan} cannot be assigned to one mzML file from {paths}; "
-            "check the idXML file-origin metadata and mzML CSV"
-        )
-    return candidates[0]
-
-
-def export(manifest, psm_qvalue, group_qvalue, output_prefix):
+def export(
+    manifest: Iterable[Mapping[str, Any]],
+    psm_qvalue: float,
+    group_qvalue: float,
+    output_prefix: str,
+) -> None:
     """Export cohort-level EasyPQP filters from ProtLoom result tables."""
     assignments = defaultdict(set)
     selected = []
@@ -214,7 +189,7 @@ def export(manifest, psm_qvalue, group_qvalue, output_prefix):
         print(f"{name}: {value}")
 
 
-def main():
+def main() -> None:
     """Parse command-line options and write the requested EasyPQP reports."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", required=True, type=Path)

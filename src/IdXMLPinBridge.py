@@ -3,11 +3,11 @@
 
 import argparse
 import csv
-import re
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pyopenms as oms
+
+from ProteomicIO import as_text, load_idxml, meta_text, mzml_scans, scan_number
 
 
 BASE_FEATURES = [
@@ -15,44 +15,6 @@ BASE_FEATURES = [
     "ExpMass", "CalcMass", "mass", "peplen", "enzN", "enzC",
     "enzInt", "dm", "absdm", "score",
 ]
-
-
-def load_idxml(path):
-    """Load protein and peptide identifications from an idXML file."""
-    proteins, peptides = [], oms.PeptideIdentificationList()
-    oms.IdXMLFile().load(str(path), proteins, peptides)
-    return proteins, peptides
-
-
-def scan_number(reference):
-    """Extract exactly one scan number from a spectrum reference."""
-    matches = re.findall(r"(?:^|\s)scan=(\d+)(?=\s|$)", reference)
-    if len(matches) != 1:
-        raise ValueError(f"Spectrum reference needs exactly one scan=N: {reference!r}")
-    return int(matches[0])
-
-
-def mzml_scans(path):
-    """Collect MS2 scan numbers from an mzML file."""
-    scans = set()
-    for _, element in ET.iterparse(path, events=("end",)):
-        if element.tag.rsplit("}", 1)[-1] == "spectrum":
-            identifier = element.get("id", "")
-            if any(child.get("accession") == "MS:1000511" and child.get("value") == "2"
-                   for child in element.iter() if child.tag.rsplit("}", 1)[-1] == "cvParam"):
-                scans.add(scan_number(identifier))
-            element.clear()
-    return scans
-
-
-def as_text(value):
-    """Decode pyOpenMS byte strings while preserving other values as text."""
-    return value.decode() if isinstance(value, bytes) else str(value)
-
-
-def meta_text(pid, key):
-    """Read an optional peptide identification metadata value as text."""
-    return as_text(pid.getMetaValue(key)) if pid.metaValueExists(key) else ""
 
 
 def match_mzml(pid, scan, paths, scan_sets, source_stems):

@@ -209,7 +209,8 @@ workflow {
         if (params.export_easypqp_reports) {
             // Group the unfiltered Percolator PEP results cohort-wide. Only
             // ProteinProphet needs the pepXML / iProphet conversion path.
-            // EasyPQP PSM selection remains based on OpenMS q-values.
+            // EasyPQP PSM selection remains based on OpenMS q-values;
+            // Epifany's output supplies associations when greedy resolution is enabled.
             if (params.protein_inference_algorithm == 'ProteinProphet') {
                 prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
                 convert_ProteinProphet_pepXML(prepare_ProteinProphet_idXML.out[0])
