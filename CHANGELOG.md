@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-10-23
+
 ### Added
 
 - Support Epifany's greedy shared-peptide resolution and use its resolved peptide evidence for EasyPQP group assignment; report zero, one, and multiple-group PSM counts.
@@ -79,4 +81,5 @@
 [2.1.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.0.0...v2.1.0
 [2.2.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.1.0...v2.2.0
 [2.2.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.0...v2.2.1
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.1...HEAD
+[2.2.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.1...v2.2.2
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.2...HEAD
