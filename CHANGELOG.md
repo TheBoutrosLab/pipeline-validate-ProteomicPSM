@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Repair enzyme-specific pepXML cleavage termini and PEP-derived probabilities before iProphet and ProteinProphet (#25).
+
 ## [2.2.2] - 2026-10-23
 
 ### Added
