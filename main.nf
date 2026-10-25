@@ -29,7 +29,9 @@ include { switch_ProtLoom_qvalue } from "${projectDir}/modules/switch_ProtLoom_q
 include { export_EasyPQP_reports } from "${projectDir}/modules/export_EasyPQP_reports"
 include { calculate_SHA512 } from "${projectDir}/modules/calculate_SHA512"
 include { prepare_ProteinProphet_idXML } from "${projectDir}/modules/prepare_ProteinProphet_idXML"
+include { extract_ProteinProphet_EnzymeRule } from "${projectDir}/modules/extract_ProteinProphet_EnzymeRule"
 include { convert_ProteinProphet_pepXML } from "${projectDir}/modules/convert_ProteinProphet_pepXML"
+include { repair_ProteinProphet_pepXML } from "${projectDir}/modules/repair_ProteinProphet_pepXML"
 include { integrate_PSM_iProphet } from "${projectDir}/modules/integrate_PSM_iProphet"
 include { infer_ProteinGroups_ProteinProphet } from "${projectDir}/modules/infer_ProteinGroups_ProteinProphet"
 include { convert_ProteinProphet_idXML } from "${projectDir}/modules/convert_ProteinProphet_idXML"
@@ -213,8 +215,12 @@ workflow {
             // Epifany's output supplies associations when greedy resolution is enabled.
             if (params.protein_inference_algorithm == 'ProteinProphet') {
                 prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
-                convert_ProteinProphet_pepXML(prepare_ProteinProphet_idXML.out[0])
-                prophet_pepxmls = convert_ProteinProphet_pepXML.out[0]
+                // OpenMS writes incorrect pepXML termini for non-Trypsin enzymes;
+                // repair each converted file before cohort-wide iProphet.
+                extract_ProteinProphet_EnzymeRule(prepare_ProteinProphet_idXML.out[0])
+                convert_ProteinProphet_pepXML(extract_ProteinProphet_EnzymeRule.out[0])
+                repair_ProteinProphet_pepXML(convert_ProteinProphet_pepXML.out[0])
+                prophet_pepxmls = repair_ProteinProphet_pepXML.out[0]
                     .map { sample_name, pepxml, search_engine -> pepxml }
                     .collect()
                 integrate_PSM_iProphet(prophet_pepxmls, file(params.decoy_database))
