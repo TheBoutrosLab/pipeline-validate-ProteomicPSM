@@ -38,12 +38,17 @@ def parse_args():
 
 
 def load_enzyme_rule(path):
-    """Accept OpenMS rules that need at most one residue on either side."""
+    """Accept no cleavage or OpenMS rules with one-residue cleavage sites."""
     with open(path, encoding='utf-8') as rule_file:
         rule = json.load(rule_file)
     name, expression = rule['name'], rule['regex']
     if not name or not expression:
         raise ValueError('The idXML has no usable digestion enzyme rule.')
+
+    # OpenMS represents no cleavage as an empty matching group. Protein
+    # boundaries remain valid termini, but there are no internal cut sites.
+    if name == 'no cleavage' and expression == '()':
+        return EnzymeRule(name, None, 'C', '', '')
 
     assertions = list(LOOKAROUND.finditer(expression))
     if not assertions or ''.join(match.group() for match in assertions) != expression:
@@ -89,8 +94,12 @@ def count_termini(sequence, before, after, cleavage):
     if before in UNKNOWN or after in UNKNOWN:
         return None
     context = before + sequence + after
-    n_term = before in N_TERMINAL or cleavage.match(context, 1) is not None
-    c_term = after in C_TERMINAL or cleavage.match(context, len(sequence) + 1) is not None
+    n_term = before in N_TERMINAL or (
+        cleavage is not None and cleavage.match(context, 1) is not None
+    )
+    c_term = after in C_TERMINAL or (
+        cleavage is not None and cleavage.match(context, len(sequence) + 1) is not None
+    )
     return int(n_term) + int(c_term)
 
 
