@@ -14,6 +14,7 @@ process export_MSBooster_PIN {
     """
     python3 ${projectDir}/src/IdXMLPinBridge.py export \\
         --idxml ${input_idxml} --mzml ${raw_files.join(' ')} \\
-        --mapping mapping.tsv --enzyme '${params.enzyme_percolator}'
+        --mapping mapping.tsv --enzyme '${params.enzyme_percolator}' \\
+        --search-engine '${search_engine}'
     """
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Export valid MSBooster calibration scores: log10 expectation values for MSFragger and Comet, and raw hyperscores for Sage (#31).
+
 ## [2.3.1] - 2026-10-27
 
 ### Added
