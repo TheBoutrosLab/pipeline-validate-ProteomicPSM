@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-10-27
+
 ### Added
 
 - Publish MSBooster edited PIN files used by Percolator with sample, search-engine, and fraction identities for downstream QC (#28).
@@ -94,4 +96,5 @@
 [2.2.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.0...v2.2.1
 [2.2.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.1...v2.2.2
 [2.3.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.2...v2.3.0
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.0...HEAD
+[2.3.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.0...v2.3.1
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.1...HEAD
