@@ -1,8 +1,26 @@
 process extract_PSMFeatures_MSBooster {
     container params.docker_image_fragpipe
 
+    publishDir { "${params.final_output_dir}/${sample_name}/MSBooster/output" },
+        mode: 'copy', pattern: 'run_*_edited.pin',
+        saveAs: { source ->
+            def name = file(source).name
+            def match = name =~ /^run_(\d+)_edited\.pin$/
+            if (!match.matches()) {
+                error "Unexpected MSBooster PIN name: ${name}"
+            }
+            def index = match[0][1].toInteger() - 1
+            if (index < 0 || index >= fraction_labels.size()) {
+                error "MSBooster PIN ${name} has no matching fraction in the mzML CSV."
+            }
+            def engine = java.net.URLEncoder.encode(search_engine, 'UTF-8')
+            def fraction = java.net.URLEncoder.encode(fraction_labels[index], 'UTF-8')
+            "engine_${engine}/run_${match[0][1]}-fraction_${fraction}_edited.pin"
+        }
+
     input:
-        tuple val(sample_name), path(input_idxml), val(search_engine), path(input_pins), path(mapping), path(input_mzmls)
+        tuple val(sample_name), path(input_idxml), val(search_engine), path(input_pins),
+            path(mapping), path(input_mzmls), val(fraction_labels)
         path(msbooster_params)
 
     output:

@@ -2,10 +2,9 @@
 process extract_PSM_features {
     container params.docker_image_openms
 
-    publishDir { "${params.intermediate_file_dir}/${sample_name}/OpenMS-${params.openms_version}/intermediate/${task.process.replace(':', '/')}/" },
+    publishDir { "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy',
-        enabled: params.save_intermediate_files,
-        pattern: "*.idXML"
+        pattern: '*_featureExtracted.idXML'
 
     publishDir { "${params.process_log_dir}/${sample_name}/${task.process.replace(':', '/')}/" },
         mode: 'copy',
