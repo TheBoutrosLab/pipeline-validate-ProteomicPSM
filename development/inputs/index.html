@@ -92,7 +92,7 @@
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
       <li class="breadcrumb-item active">Inputs</li>
     <li class="wy-breadcrumbs-aside">
-          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b04dadbe292c2336211229d347760780a29e854/README.md" class="icon icon-github"> Edit on GitHub</a>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/506ea03e46103df3e240b7d400e06637e2eb2766/README.md" class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
   <hr/>
@@ -203,7 +203,7 @@ SBP0002,1,/data/SBP0002_f01.mzML
 <tr>
 <td><code>msbooster_params</code></td>
 <td>string(path)</td>
-<td>MSBooster prediction settings. Defaults to <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b04dadbe292c2336211229d347760780a29e854/input/msbooster.params">input/msbooster.params</a>, which uses DIA-NN. The pipeline supplies input PIN, mzML, and DIA-NN executable paths.</td>
+<td>MSBooster prediction settings. Defaults to <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/506ea03e46103df3e240b7d400e06637e2eb2766/input/msbooster.params">input/msbooster.params</a>, which uses DIA-NN. The pipeline supplies input PIN, mzML, and DIA-NN executable paths.</td>
 </tr>
 <tr>
 <td><code>fragpipe_version</code></td>
@@ -364,7 +364,7 @@ SBP0002,1,/data/SBP0002_f01.mzML
 </table>
 <p>Additional OpenMS options and their pipeline parameter names are listed in <a href="../params.rst">docs/params.rst</a>.</p>
 <p>The MSBooster route uses the FragPipe image for MSBooster, DIA-NN prediction, and direct Percolator execution. It writes PEP, q-value, and SVM scores back to the original idXML PSMs. The original <code>openms</code> workflow remains available and is the default.</p>
-<p>When <code>run_protloom = true</code>, set <code>protloom_project_yaml</code> to the project YAML used to build the search database. The configuration setup loads and validates that YAML before the workflow starts. Its <code>database.output_fasta</code> and <code>database.output_entries_tsv</code> must point to the existing <code>buildDB</code> outputs. Each <code>samples</code> row must have a <code>sample_id</code> matching <code>sample_name</code> in the input CSV and an <code>annotation_id</code> listed under <code>annotations</code>. The YAML's <code>id_files</code> values are ignored: the pipeline inserts the idXML files produced during this run into per-task project manifests. All referenced FASTA, entries TSV, and GTF files are staged into the ProtLoom tasks. Database decoy and contaminant markers come from the YAML; set the pipeline's <code>decoy_string</code> to the same decoy marker. See <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b04dadbe292c2336211229d347760780a29e854/input/protloom-project.example.yaml">input/protloom-project.example.yaml</a> for the required fields.</p>
+<p>When <code>run_protloom = true</code>, set <code>protloom_project_yaml</code> to the project YAML used to build the search database. The configuration setup loads and validates that YAML before the workflow starts. Its <code>database.output_fasta</code> and <code>database.output_entries_tsv</code> must point to the existing <code>buildDB</code> outputs. Each <code>samples</code> row must have a <code>sample_id</code> matching <code>sample_name</code> in the input CSV and an <code>annotation_id</code> listed under <code>annotations</code>. The YAML's <code>id_files</code> values are ignored: the pipeline inserts the idXML files produced during this run into per-task project manifests. All referenced FASTA, entries TSV, and GTF files are staged into the ProtLoom tasks. Database decoy and contaminant markers come from the YAML; set the pipeline's <code>decoy_string</code> to the same decoy marker. See <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/506ea03e46103df3e240b7d400e06637e2eb2766/input/protloom-project.example.yaml">input/protloom-project.example.yaml</a> for the required fields.</p>
 <p>The pipeline passes unfiltered Percolator idXML with lower-is-better PEP scores directly to ProtLoom 0.2.3. One sample runs <code>localInfer --disable-ccs</code>. Multiple samples run <code>jointGraph</code> once, followed by <code>jointInfer --disable-ccs</code> for each sample. <code>computeFDR</code> runs after either inference path. Samples with multiple search engines use the consensus result; set <code>merge_consensus = true</code> for those inputs. The default container is <code>ghcr.io/theboutroslab/protloom:0.2.3</code>; set <code>docker_image_protloom</code> to override it.</p>
 <hr />
               
