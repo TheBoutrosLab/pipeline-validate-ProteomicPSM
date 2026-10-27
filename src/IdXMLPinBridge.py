@@ -3,6 +3,7 @@
 
 import argparse
 import csv
+import math
 from pathlib import Path
 
 import pyopenms as oms
@@ -15,6 +16,37 @@ BASE_FEATURES = [
     "ExpMass", "CalcMass", "mass", "peplen", "enzN", "enzC",
     "enzInt", "dm", "absdm", "score",
 ]
+
+
+def msbooster_score(engine, score_type, higher_is_better, score):
+    """Return the PIN score column and value expected by MSBooster for an engine."""
+    engine = engine.lower()
+    if not math.isfinite(score):
+        raise ValueError(f"{engine} has a non-finite PSM score: {score}")
+    if engine in ("msfragger", "comet"):
+        if score_type != "expect" or higher_is_better:
+            raise ValueError(
+                f"{engine} requires lower-is-better 'expect' idXML scores; "
+                f"got {score_type!r} (higher_is_better={higher_is_better})"
+            )
+        if score < 0:
+            raise ValueError(f"{engine} has a negative expectation value: {score}")
+        # An expectation value of zero is rounded underflow; keep its log finite.
+        return "log10_evalue", math.log10(max(score, 1e-30))
+    if engine == "sage":
+        if score_type != "ln(hyperscore)" or not higher_is_better:
+            raise ValueError(
+                "Sage requires higher-is-better 'ln(hyperscore)' idXML scores; "
+                f"got {score_type!r} (higher_is_better={higher_is_better})"
+            )
+        try:
+            hyperscore = math.exp(score)
+        except OverflowError as error:
+            raise ValueError(f"Sage hyperscore overflows: {score}") from error
+        if not math.isfinite(hyperscore) or hyperscore <= 0:
+            raise ValueError(f"Sage has an invalid hyperscore: {score}")
+        return "hyperscore", hyperscore
+    raise ValueError(f"MSBooster PIN export does not support search engine {engine!r}")
 
 
 def match_mzml(pid, scan, paths, scan_sets, source_stems):
@@ -80,8 +112,12 @@ def export(args):
             charge = hit.getCharge()
             if charge < 1:
                 raise ValueError(f"PSM {pid_index}:{hit_index} has invalid charge {charge}")
-            locations.append((pid_index, hit_index, scan, charge, hit.getScore(),
-                              pid.isHigherScoreBetter(), run_index, file_identifier))
+            score_column, score = msbooster_score(
+                args.search_engine, as_text(pid.getScoreType()),
+                pid.isHigherScoreBetter(), hit.getScore()
+            )
+            locations.append((pid_index, hit_index, scan, charge, score_column,
+                              score, run_index, file_identifier))
             charges.append(charge)
     if not locations:
         raise ValueError("Input idXML contains no PSMs")
@@ -117,20 +153,21 @@ def export(args):
         )
     include_file_name = "FileName" in fields
     fields = [field for field in fields if field != "FileName"]
-    fields = fields[:-1] + ["log10_evalue", fields[-1]]
+    expected_column = "hyperscore" if args.search_engine.lower() == "sage" else "log10_evalue"
+    if expected_column not in fields:
+        fields = fields[:-1] + [expected_column, fields[-1]]
     mapping = []
     rows_by_run = {index: [] for index in range(len(paths))}
     for rank, (row, location) in enumerate(zip(rows, locations), 1):
-        (pid_index, hit_index, scan, charge, score, higher,
+        (pid_index, hit_index, scan, charge, score_column, score,
          run_index, file_identifier) = location
         if int(row["ScanNr"]) != scan:
             raise ValueError("OpenMS PIN order or scan numbers differ from the idXML")
         if include_file_name and row.pop("FileName") != file_identifier:
             raise ValueError("OpenMS PIN source-file order differs from the idXML")
         spec_id = f"run_{run_index + 1:02d}.{scan}.{scan}.{charge}_{rank}"
-        # MSBooster uses this value to choose calibration PSMs; monotonicity is sufficient.
         row["SpecId"] = spec_id
-        row["log10_evalue"] = str(max(-30.0, min(30.0, -score if higher else score)))
+        row[score_column] = str(score)
         row["retentiontime"] = str(float(row["retentiontime"]) / 60.0)
         mapping.append((spec_id, pid_index, hit_index))
         rows_by_run[run_index].append(row)
@@ -201,6 +238,7 @@ def main():
     exp = sub.add_parser("export")
     for name in ("idxml", "mapping", "enzyme"):
         exp.add_argument(f"--{name}", required=True)
+    exp.add_argument("--search-engine", required=True)
     exp.add_argument("--mzml", nargs="+", required=True)
     imp = sub.add_parser("integrate")
     for name in ("idxml", "mapping", "target", "decoy", "output"):
