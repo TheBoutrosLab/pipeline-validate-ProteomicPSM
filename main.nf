@@ -138,7 +138,7 @@ workflow {
                         def b = right[0].isInteger() ? right[0].toInteger() : null
                         (a != null && b != null) ? (a <=> b) : (left[0] <=> right[0])
                     }
-                    [sample_name, ordered.collect { it[1] }]
+                    [sample_name, ordered.collect { it[1] }, ordered.collect { it[0] }]
                 }
             }
     }
@@ -159,8 +159,9 @@ workflow {
             paired_input = feature_idXML
                 .map { sample_name, idxml, search_engine -> [sample_name, idxml, search_engine] }
                 .combine(mzML_by_sample, by: 0)
-            // Convert idXML to PIN, add MSBooster features, rescore in
-            // Percolator, then transfer the scores back to idXML.
+            // Carry the ordered fraction labels alongside the mzML files so
+            // each published MSBooster PIN identifies its source fraction.
+            // Then rescore in Percolator and transfer the scores to idXML.
             export_MSBooster_PIN(paired_input)
             extract_PSMFeatures_MSBooster(export_MSBooster_PIN.out[0], file(params.msbooster_params))
             score_PSM_PercolatorPIN(extract_PSMFeatures_MSBooster.out[0])

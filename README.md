@@ -82,6 +82,8 @@ SBP0002,1,/data/SBP0002_f01.mzML
 
 The sample names in the two CSV files must match. Spectrum references in idXML must contain `scan=N` and identify MS2 scans in the corresponding mzML. When a scan number occurs in several fractions, `file_origin` or `id_merge_index` in the idXML must disambiguate it. Missing or ambiguous matches fail during PIN export.
 
+With `percolator_workflow = 'msbooster'`, the edited PIN files sent to Percolator are always published under `<final_output_dir>/<sample_name>/MSBooster/output/engine_<search_engine>/` as `run_XX-fraction_<fraction>_edited.pin`. For example, sample `SBP0001`, engine `MSFragger`, and fraction `2` produce `SBP0001/MSBooster/output/engine_MSFragger/run_02-fraction_2_edited.pin`. `run_XX` is the one-based position of the fraction after the mzML CSV rows for that sample are sorted (numeric labels numerically, other labels alphabetically). Search-engine and fraction names are URL-encoded in these paths when they contain characters unsuitable for filenames; for example, a space becomes `+`. Fractions without exported PSMs have no PIN. These files are final outputs regardless of `save_intermediate_files`.
+
 The idXML files must preserve target/decoy annotations for FDR estimation. If peptide indexing is enabled, the FASTA must contain matching target and decoy protein sequences. Percolator also needs enough decoy PSMs to train; a small test dataset may require `run_percolator = false`.
 
 ### Config

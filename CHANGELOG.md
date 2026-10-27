@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Publish MSBooster edited PIN files used by Percolator with sample, search-engine, and fraction identities for downstream QC (#28).
+- Publish OpenMS PSMFeatureExtractor idXML files as standard final outputs.
+
 ## [2.3.0] - 2026-10-25
 
 ### Fixed
