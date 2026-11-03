@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-11-02
+
 ### Fixed
 
 - Match preserved pepXML native spectrum IDs directly to mzML MS2 spectra during MSBooster PIN export, including diaTracer `frame=N` IDs.
@@ -115,4 +117,5 @@
 [2.3.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.0...v2.3.1
 [2.3.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.1...v2.3.2
 [2.4.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.2...v2.4.0
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.0...HEAD
+[2.4.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.0...v2.4.1
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.1...HEAD
