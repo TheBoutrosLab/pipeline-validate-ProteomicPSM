@@ -32,22 +32,39 @@ def meta_text(pid: oms.PeptideIdentification, key: str) -> str:
 
 
 def scan_number(reference: str) -> int:
-    """Extract exactly one scan number from a spectrum reference."""
-    matches = re.findall(r"(?:^|\s)scan=(\d+)(?=\s|$)", reference)
+    """Extract one numeric scan or diaTracer frame ID from a spectrum reference."""
+    matches = re.findall(r"(?:^|\s)(?:scan|frame)=(\d+)(?=\s|$)", reference)
     if len(matches) != 1:
-        raise ValueError(f"Spectrum reference needs exactly one scan=N: {reference!r}")
+        raise ValueError(f"Spectrum reference needs exactly one scan=N or frame=N: {reference!r}")
     return int(matches[0])
 
 
+def mzml_ms2_native_ids(path: str | Path) -> set[str]:
+    """Collect exact native IDs of MS2 spectra from an mzML file."""
+    identifiers = set()
+    for _, element in ET.iterparse(path, events=("end",)):
+        if element.tag.rsplit("}", 1)[-1] == "spectrum":
+            if any(child.get("accession") == "MS:1000511" and child.get("value") == "2"
+                   for child in element.iter() if child.tag.rsplit("}", 1)[-1] == "cvParam"):
+                native_id = element.get("id", "")
+                if not native_id or native_id in identifiers:
+                    raise ValueError(f"Missing or duplicate MS2 native ID {native_id!r} in {path}")
+                identifiers.add(native_id)
+            element.clear()
+    return identifiers
+
+
 def mzml_scans(path: str | Path) -> set[int]:
-    """Collect MS2 scan numbers from an mzML file."""
+    """Collect numeric MS2 scan IDs for inputs without a preserved native ID."""
     scans = set()
     for _, element in ET.iterparse(path, events=("end",)):
         if element.tag.rsplit("}", 1)[-1] == "spectrum":
             identifier = element.get("id", "")
             if any(child.get("accession") == "MS:1000511" and child.get("value") == "2"
                    for child in element.iter() if child.tag.rsplit("}", 1)[-1] == "cvParam"):
-                scans.add(scan_number(identifier))
+                # A frame number is not interchangeable with a scan number.
+                if re.search(r"(?:^|\s)scan=\d+(?=\s|$)", identifier):
+                    scans.add(scan_number(identifier))
             element.clear()
     return scans
 

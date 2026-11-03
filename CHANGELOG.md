@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Match preserved pepXML native spectrum IDs directly to mzML MS2 spectra during MSBooster PIN export, including diaTracer `frame=N` IDs.
+
 ## [2.4.0] - 2026-11-02
 
 ### Added
