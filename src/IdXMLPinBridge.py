@@ -56,7 +56,8 @@ def match_mzml(pid, scan, paths, scan_sets, native_id_sets, source_stems):
         candidates = [index for index, ids in enumerate(native_id_sets) if native_id in ids]
         if not candidates:
             raise ValueError(
-                f"Native spectrum ID {native_id!r} from pepXML is absent from the sample's mzML files"
+                f"Native spectrum ID {native_id!r} from pepXML is absent "
+                "from the sample's mzML files"
             )
     else:
         candidates = [index for index, scans in enumerate(scan_sets) if scan in scans]
