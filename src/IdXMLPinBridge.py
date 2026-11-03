@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pyopenms as oms
 
-from ProteomicIO import as_text, load_idxml, meta_text, mzml_scans, scan_number
+from ProteomicIO import as_text, load_idxml, meta_text, mzml_ms2_native_ids, mzml_scans, scan_number
 
 
 BASE_FEATURES = [
@@ -49,9 +49,18 @@ def msbooster_score(engine, score_type, higher_is_better, score):
     raise ValueError(f"MSBooster PIN export does not support search engine {engine!r}")
 
 
-def match_mzml(pid, scan, paths, scan_sets, source_stems):
-    """Find the raw file for a scan, requiring provenance if scans repeat."""
-    candidates = [index for index, scans in enumerate(scan_sets) if scan in scans]
+def match_mzml(pid, scan, paths, scan_sets, native_id_sets, source_stems):
+    """Find the raw file by native ID when available, otherwise by scan number."""
+    native_id = meta_text(pid, "pepxml_spectrum_name")
+    if native_id:
+        candidates = [index for index, ids in enumerate(native_id_sets) if native_id in ids]
+        if not candidates:
+            raise ValueError(
+                f"Native spectrum ID {native_id!r} from pepXML is absent "
+                "from the sample's mzML files"
+            )
+    else:
+        candidates = [index for index, scans in enumerate(scan_sets) if scan in scans]
     if not candidates:
         raise ValueError(f"Scan {scan} in idXML is absent from the sample's mzML files")
     if len(candidates) == 1:
@@ -70,8 +79,9 @@ def match_mzml(pid, scan, paths, scan_sets, source_stems):
                        if paths[candidate].stem.lower() == source_stems[index]]
             if len(matches) == 1:
                 return matches[0]
+    identifier = f"native spectrum ID {native_id!r}" if native_id else f"scan {scan}"
     raise ValueError(
-        f"Scan {scan} occurs in multiple mzML files without an unambiguous file origin"
+        f"{identifier} occurs in multiple mzML files without an unambiguous file origin"
     )
 
 
@@ -83,7 +93,10 @@ def export(args):
     paths = [Path(path) for path in args.mzml]
     if len({path.name.lower() for path in paths}) != len(paths):
         raise ValueError("mzML files for one sample must have distinct basenames")
-    scan_sets = [mzml_scans(path) for path in paths]
+    native_id_sets = [mzml_ms2_native_ids(path) for path in paths]
+    scan_sets = [mzml_scans(path) for path in paths] if any(
+        not meta_text(pid, "pepxml_spectrum_name") for pid in peptides
+    ) else [set() for _ in paths]
     source_stems = []
     if proteins:
         source_paths = []
@@ -99,7 +112,7 @@ def export(args):
     charges = []
     for pid_index, pid in enumerate(peptides):
         scan = scan_number(meta_text(pid, "spectrum_reference"))
-        run_index = match_mzml(pid, scan, paths, scan_sets, source_stems)
+        run_index = match_mzml(pid, scan, paths, scan_sets, native_id_sets, source_stems)
         file_identifier = meta_text(pid, "file_origin")
         merge_index = meta_text(pid, "id_merge_index")
         if merge_index:
