@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-11-02
+
 ### Added
 
 - Use ProtLoom 0.3.1 PT/PC-split PSM FDR as an alternative to OpenMS FalseDiscoveryRate without protein inference, preserving source idXML metadata.
@@ -108,4 +110,5 @@
 [2.3.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.2.2...v2.3.0
 [2.3.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.0...v2.3.1
 [2.3.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.1...v2.3.2
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.2...HEAD
+[2.4.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.2...v2.4.0
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.0...HEAD
