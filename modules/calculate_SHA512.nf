@@ -2,7 +2,7 @@ process calculate_SHA512 {
     containerOptions params.project_script_mount_options
     container params.docker_image_pyopenms
 
-    publishDir { params.run_protloom ?
+    publishDir { (params.run_protloom || params.protloom_split_fdr) ?
         "${params.final_output_dir}/${sample_name}/ProtLoom-${params.protloom_version}/output" :
         "${params.final_output_dir}/${sample_name}/OpenMS-${params.openms_version}/output" },
         mode: 'copy', pattern: '*.idXML.sha512'

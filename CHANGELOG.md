@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Use ProtLoom 0.3.1 PT/PC-split PSM FDR as an alternative to OpenMS FalseDiscoveryRate without protein inference, preserving source idXML metadata.
+
 ## [2.3.2] - 2026-10-27
 
 ### Fixed

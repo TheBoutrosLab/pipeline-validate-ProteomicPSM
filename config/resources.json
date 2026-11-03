@@ -442,6 +442,14 @@
             "cpus": {"min": 1, "fraction": 0.1, "max": 4},
             "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}
         },
+        "score_FDR_ProtLoomSplit": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}
+        },
+        "score_FDR_ProtLoomSplit_consensus": {
+            "cpus": {"min": 1, "fraction": 0.1, "max": 4},
+            "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}
+        },
         "export_EasyPQP_reports": {
             "cpus": {"min": 1, "fraction": 0.1, "max": 4},
             "memory": {"min": "4 GB", "fraction": 0.25, "max": "16 GB"}

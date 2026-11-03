@@ -6,6 +6,7 @@ process score_FDR_ProtLoom {
 
     input:
         tuple val(sample_name), path(input_idxml), path(group_table), path(assignment_table)
+        path(entries_tsv)
         val(markers)
 
     output:
@@ -18,6 +19,7 @@ process score_FDR_ProtLoom {
         --id-file ${input_idxml} \\
         --group-table ${group_table} \\
         --assignment-table ${assignment_table} \\
+        --entries-tsv ${entries_tsv} \\
         --pt-order '${params.protloom_pt_order}' \\
         --pc-order '${params.protloom_pc_order}' \\
         --decoy-string '${markers.decoy_string}' \\

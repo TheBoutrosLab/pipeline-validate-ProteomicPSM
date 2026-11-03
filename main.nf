@@ -10,11 +10,13 @@ include { extract_PSMFeatures_MSBooster } from "${projectDir}/modules/extract_PS
 include { score_PSM_PercolatorPIN } from "${projectDir}/modules/score_PSM_PercolatorPIN"
 include { import_percolator_POUT } from "${projectDir}/modules/import_percolator_POUT"
 include { score_FDR_OpenMS } from "${projectDir}/modules/score_FDR_OpenMS"
+include { score_FDR_ProtLoomSplit } from "${projectDir}/modules/score_FDR_ProtLoomSplit"
 include { switch_score_2_pep } from "${projectDir}/modules/switch_score_2_pep"
 include { fix_idXMLSpectraDataPath } from "${projectDir}/modules/fix_idXMLSpectraDataPath.nf"
 include { merge_PSM; merge_PSM as merge_PSM_fractions } from "${projectDir}/modules/merge_PSM"
 include { aggregate_consensus_id } from "${projectDir}/modules/aggregate_consensus_id"
 include { score_FDR_OpenMS as score_FDR_OpenMS_consensus } from "${projectDir}/modules/score_FDR_OpenMS"
+include { score_FDR_ProtLoomSplit as score_FDR_ProtLoomSplit_consensus } from "${projectDir}/modules/score_FDR_ProtLoomSplit"
 include { filter_PSM } from "${projectDir}/modules/filter_PSM"
 include { filter_PSM as filter_PSM_consensus } from "${projectDir}/modules/filter_PSM"
 include { filter_PSM as filter_PSM_protloom } from "${projectDir}/modules/filter_PSM"
@@ -187,10 +189,21 @@ workflow {
         // Keep Percolator PEP as the active score for ProtLoom inference.
         ch_idXML_individual = ch_rescored_idXML
     } else {
-        // The OpenMS route computes and filters PSM q-values per engine.
-        score_FDR_OpenMS(ch_rescored_idXML)
+        // Select one PSM q-value estimator per engine. ProtLoom split FDR
+        // uses the active idXML score without running protein inference.
+        if (params.protloom_split_fdr) {
+            score_FDR_ProtLoomSplit(
+                ch_rescored_idXML,
+                file(protloom_project.entries),
+                protloom_project.markers
+            )
+            ch_fdr_idxml = score_FDR_ProtLoomSplit.out[0]
+        } else {
+            score_FDR_OpenMS(ch_rescored_idXML)
+            ch_fdr_idxml = score_FDR_OpenMS.out[0]
+        }
         filter_PSM(
-            score_FDR_OpenMS.out[0],
+            ch_fdr_idxml,
             file(params.filter_psm_whitelist_proteins),
             file(params.filter_psm_whitelist_peptides),
             file(params.filter_psm_blacklist_proteins),
@@ -199,20 +212,27 @@ workflow {
         )
         ch_final_mztab_idxml = filter_PSM.out[0]
         ch_checksum_idxml = filter_PSM.out[0]
+        if (params.protloom_split_fdr) {
+            ch_checksum_idxml = ch_checksum_idxml.mix(
+                ch_fdr_idxml.map { sample_name, idxml, search_engine -> [sample_name, idxml] }
+            )
+        }
 
-        // Restore PEP in the unfiltered idXML for downstream inference;
-        // the filtered OpenMS output retains q-values.
-        if (params.run_percolator) {
-            switch_score_2_pep(score_FDR_OpenMS.out[0])
+        // Keep unfiltered scores and protein evidence for consensus and
+        // protein inference; the separate FDR idXML supplies q-values.
+        if (params.protloom_split_fdr) {
+            ch_idXML_individual = ch_rescored_idXML
+        } else if (params.run_percolator) {
+            switch_score_2_pep(ch_fdr_idxml)
             ch_idXML_individual = switch_score_2_pep.out[0]
         } else {
-            ch_idXML_individual = score_FDR_OpenMS.out[0]
+            ch_idXML_individual = ch_fdr_idxml
         }
 
         if (params.export_easypqp_reports) {
             // Group the unfiltered Percolator PEP results cohort-wide. Only
             // ProteinProphet needs the pepXML / iProphet conversion path.
-            // EasyPQP PSM selection remains based on OpenMS q-values;
+            // EasyPQP PSM selection uses the selected FDR estimator's q-values;
             // Epifany's output supplies associations when greedy resolution is enabled.
             if (params.protein_inference_algorithm == 'ProteinProphet') {
                 prepare_ProteinProphet_idXML(ch_rescored_idXML, file(params.decoy_database))
@@ -243,7 +263,7 @@ workflow {
                 }
             }
 
-            group_easypqp_input = score_FDR_OpenMS.out[0]
+            group_easypqp_input = ch_fdr_idxml
                 .join(mzML_by_sample, by: 0)
                 .collect(flat: false)
                 .map { rows ->
@@ -315,9 +335,19 @@ workflow {
             }
 
             // Score and filter the merged consensus separately from engine results.
-            score_FDR_OpenMS_consensus(ch_indexed_consensus_idXML)
+            if (params.protloom_split_fdr) {
+                score_FDR_ProtLoomSplit_consensus(
+                    ch_indexed_consensus_idXML,
+                    file(protloom_project.entries),
+                    protloom_project.markers
+                )
+                ch_consensus_fdr_idxml = score_FDR_ProtLoomSplit_consensus.out[0]
+            } else {
+                score_FDR_OpenMS_consensus(ch_indexed_consensus_idXML)
+                ch_consensus_fdr_idxml = score_FDR_OpenMS_consensus.out[0]
+            }
             filter_PSM_consensus(
-                score_FDR_OpenMS_consensus.out[0],
+                ch_consensus_fdr_idxml,
                 file(params.filter_psm_whitelist_proteins),
                 file(params.filter_psm_whitelist_peptides),
                 file(params.filter_psm_blacklist_proteins),
@@ -326,6 +356,13 @@ workflow {
             )
             export_mzTab_consensus(filter_PSM_consensus.out[0])
             ch_checksum_idxml = ch_checksum_idxml.mix(filter_PSM_consensus.out[0])
+            if (params.protloom_split_fdr) {
+                ch_checksum_idxml = ch_checksum_idxml.mix(
+                    ch_consensus_fdr_idxml.map { sample_name, idxml, search_engine ->
+                        [sample_name, idxml]
+                    }
+                )
+            }
         }
     }
 
@@ -383,7 +420,7 @@ workflow {
 
         inference_results = infer_ProteinGroups_ProtLoomLocal.out.inference
             .mix(infer_ProteinGroups_ProtLoomJoint.out.inference)
-        score_FDR_ProtLoom(inference_results, protloom_markers)
+        score_FDR_ProtLoom(inference_results, protloom_entries, protloom_markers)
 
         // Join by sample_name: inference contributes idXML/assignments, while
         // computeFDR contributes PSM and protein-group q-value tables.
