@@ -59,6 +59,10 @@ run_protloom:
   type: Bool
   required: false
   help: Run ProtLoom inference and FDR after MSBooster and Percolator.
+protloom_split_fdr:
+  type: Bool
+  required: false
+  help: Use ProtLoom PT/PC-split FDR on idXML scores instead of OpenMS FalseDiscoveryRate, without ProtLoom inference.
 dataset_id:
   type: String
   required: false
@@ -108,7 +112,7 @@ protloom_project_yaml:
   type: Path
   mode: r
   required: false
-  help: ProtLoom project YAML with database outputs, annotations, and sample-to-annotation mappings; required when run_protloom is true.
+  help: ProtLoom project YAML with database outputs; required for inference or split FDR.
 protloom_pt_order:
   type: String
   required: false

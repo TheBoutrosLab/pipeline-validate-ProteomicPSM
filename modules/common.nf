@@ -55,7 +55,7 @@ def printPrelogue(){
         params.protein_inference_algorithm == 'Fido') {
         images.Fido = params.docker_image_fido
     }
-    if (params.run_protloom) {
+    if (params.run_protloom || params.protloom_split_fdr) {
         images.ProtLoom = params.docker_image_protloom
     }
     def images_str = images.collect { name, image ->
