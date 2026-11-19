@@ -2,15 +2,17 @@
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-11-19
+
+### Changed
+
+- Run NFTest cases through a Python launcher with cluster-aware output paths and Pines Apptainer selection.
+
 ### Fixed
 
 - Isolate PercolatorAdapter temporary files in each Nextflow task to avoid parallel Apptainer collisions (#40).
 - Expand environment variables in ProtLoom project paths so one test manifest works across cluster data roots.
 - Use the ProtLoom target-decoy FASTA for the MSFragger DIA integration test's peptide indexing.
-
-### Changed
-
-- Run NFTest cases through a Python launcher with cluster-aware output paths and Pines Apptainer selection.
 
 ## [2.4.1] - 2026-11-02
 
@@ -128,4 +130,5 @@
 [2.3.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.1...v2.3.2
 [2.4.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.2...v2.4.0
 [2.4.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.0...v2.4.1
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.1...HEAD
+[2.4.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.1...v2.4.2
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.2...HEAD
