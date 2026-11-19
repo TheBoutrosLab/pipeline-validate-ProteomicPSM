@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Isolate PercolatorAdapter temporary files in each Nextflow task to avoid parallel Apptainer collisions (#40).
+- Expand environment variables in ProtLoom project paths so one test manifest works across cluster data roots.
+- Use the ProtLoom target-decoy FASTA for the MSFragger DIA integration test's peptide indexing.
+
+### Changed
+
+- Run NFTest cases through a Python launcher with cluster-aware output paths and Pines Apptainer selection.
+
 ## [2.4.1] - 2026-11-02
 
 ### Fixed

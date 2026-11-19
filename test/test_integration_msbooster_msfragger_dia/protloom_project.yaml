@@ -1,0 +1,32 @@
+schema_version: 1
+
+fasta_sources:
+  - fasta_id: ecoli
+    fasta_path: $TEST_DATA_DIR/database/UP000000625_83333.fasta
+    fasta_format: uniprot
+    protein_tier: canonical
+    peptide_class: proteotypic
+    annotation_id: ecoli
+
+annotations:
+  - annotation_id: ecoli
+    gtf_path: $TEST_DATA_DIR/database/Escherichia_coli_str_k_12_substr_mg1655_gca_000005845.ASM584v2.63.gtf
+    taxon_id: "83333"
+    idmapping_path: $TEST_DATA_DIR/database/ECOLI_83333_idmapping.dat.gz
+
+database:
+  output_fasta: $TEST_DATA_DIR/database/Ecoli_k_12-UniProt.fasta
+  output_entries_tsv: $TEST_DATA_DIR/database/Ecoli_k_12-UniProt-entries.tsv
+  strip_version: false
+  generate_decoys: true
+  include_contaminants: true
+  decoy_string: "DECOY_"
+  decoy_position: prefix
+  contam_string: "CONTAMINANT_"
+  contam_position: prefix
+
+samples:
+  - sample_id: LFQ_Orbitrap_AIF_Ecoli_01
+    annotation_id: ecoli
+  - sample_id: LFQ_Orbitrap_AIF_Ecoli_02
+    annotation_id: ecoli

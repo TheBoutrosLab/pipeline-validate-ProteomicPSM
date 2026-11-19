@@ -2,7 +2,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
 /**
- * Expands environment variables in CSV inputs used by NFTest configurations.
+ * Expands environment variables in text inputs used by NFTest configurations.
  */
 class NFTestCsvTools {
     /**
@@ -31,13 +31,23 @@ class NFTestCsvTools {
     }
 
     /**
-     * Expand environment variables in a CSV and write the result beneath the
-     * Nextflow work directory. NFTest removes this with the test work tree.
+     * Expand a CSV beneath the Nextflow work directory.
      */
     String prepareInputCsv(Object sourceCsv, String testName, Object launchDir) {
-        def sourceFile = new File(sourceCsv.toString())
+        return prepareInputFile(sourceCsv, testName, launchDir, 'csv')
+    }
+
+    /** Expand a project YAML beneath the Nextflow work directory. */
+    String prepareInputYaml(Object sourceYaml, String testName, Object launchDir) {
+        return prepareInputFile(sourceYaml, testName, launchDir, 'yaml')
+    }
+
+    /** Keep expanded inputs in the work tree for inspection after a failed run. */
+    String prepareInputFile(Object source, String testName, Object launchDir,
+                            String extension) {
+        def sourceFile = new File(source.toString())
         if (!sourceFile.isFile()) {
-            throw new IllegalArgumentException("Test input CSV does not exist: ${sourceFile}")
+            throw new IllegalArgumentException("Test input file does not exist: ${sourceFile}")
         }
 
         def workRoot = new File(System.getenv('NXF_WORK') ?: "${launchDir}/work")
@@ -45,14 +55,13 @@ class NFTestCsvTools {
         Files.createDirectories(inputDirectory.toPath())
 
         def safeTestName = testName.replaceAll(/[^A-Za-z0-9_.-]/, '-')
-        def expandedCsv = File.createTempFile("${safeTestName}-", '.csv', inputDirectory)
+        def expandedFile = File.createTempFile("${safeTestName}-", ".${extension}", inputDirectory)
         def sourceContent = Files.readString(sourceFile.toPath(), StandardCharsets.UTF_8)
         def expandedContent = expandEnvironmentVariables(sourceContent)
 
-        Files.writeString(expandedCsv.toPath(), expandedContent, StandardCharsets.UTF_8)
-        expandedCsv.deleteOnExit()
+        Files.writeString(expandedFile.toPath(), expandedContent, StandardCharsets.UTF_8)
 
-        return expandedCsv.absolutePath
+        return expandedFile.absolutePath
     }
 }
 
