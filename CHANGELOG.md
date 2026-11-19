@@ -6,6 +6,7 @@
 
 - Isolate PercolatorAdapter temporary files in each Nextflow task to avoid parallel Apptainer collisions (#40).
 - Expand environment variables in ProtLoom project paths so one test manifest works across cluster data roots.
+- Use the ProtLoom target-decoy FASTA for the MSFragger DIA integration test's peptide indexing.
 
 ### Changed
 
