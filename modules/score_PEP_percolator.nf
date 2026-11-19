@@ -42,6 +42,9 @@ process score_PEP_percolator {
     output_idxml = "${sample_name}_${search_engine}_percolator.idXML"
     extra_args = getCommandArgs(PARAMETER_MAPPER, FLAG_MAPPER)
     """
+    set -euo pipefail
+    export OPENMS_TMPDIR="\$(pwd -P)/.openms-tmp"
+    mkdir -p "\$OPENMS_TMPDIR"
     OMP_NUM_THREADS=${task.cpus} PercolatorAdapter \\
         -in ${input_idxml} \\
         -out ${output_idxml} \\

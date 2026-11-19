@@ -1,14 +1,15 @@
 # Use the project YAML from ProtLoom buildDB and ensure these fields are present.
-# Paths are relative to this YAML file. Sample IDs must match input.csv sample_name.
+# Relative paths use this YAML file's directory. $VARIABLE paths use the environment.
+# Sample IDs must match input.csv sample_name.
 schema_version: 1
 
 database:
-  output_fasta: /path/to/protloom-database.fasta
-  output_entries_tsv: /path/to/protloom-database.entries.tsv
+  output_fasta: database/protloom-database.fasta
+  output_entries_tsv: database/protloom-database.entries.tsv
 
 annotations:
   - annotation_id: reference
-    gtf_path: /path/to/reference.gtf
+    gtf_path: annotations/reference.gtf
 
 samples:
   - sample_id: sample_1
