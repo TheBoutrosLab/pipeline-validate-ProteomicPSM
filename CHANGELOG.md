@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-11-20
+
 ### Changed
 
 - Migrate the pipeline license from GPL to BSD 3-Clause and update license documentation; shared code and third-party tools retain their respective licenses.
@@ -135,4 +137,5 @@
 [2.4.0]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.3.2...v2.4.0
 [2.4.1]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.0...v2.4.1
 [2.4.2]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.1...v2.4.2
-[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.2...HEAD
+[2.4.3]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.2...v2.4.3
+[unreleased]: https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/compare/v2.4.3...HEAD
