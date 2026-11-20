@@ -186,14 +186,9 @@ Intermediate idXML files are published under each sample’s `intermediate/` dir
 
 ## License
 
-pipeline-validate-ProteomicPSM is licensed under the GNU General Public License version 2. See [LICENSE](LICENSE) for the terms of the GNU GPL license.
+The code in pipeline-validate-ProteomicPSM is licensed under the
+BSD 3-Clause License (`BSD-3-Clause`). See [LICENSE](LICENSE) for the terms.
 
-pipeline-validate-ProteomicPSM
-
-Validate peptide-spectrum matches with OpenMS and Percolator.
+Shared code and third-party tools retain their respective licenses.
 
 Copyright (C) 2026 Sanford Burnham Prebys Medical Discovery Institute ("Boutros Lab")
-
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
