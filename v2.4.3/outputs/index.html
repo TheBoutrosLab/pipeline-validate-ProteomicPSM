@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Outputs - pipeline-validate-ProteomicPSM</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Outputs";
+        var mkdocs_page_input_path = "outputs.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> pipeline-validate-ProteomicPSM
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../overview/">Overview</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../how-to-run/">How To Run</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../pipeline-steps/">Pipeline Steps</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../inputs/">Inputs</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="./">Outputs</a>
+    <ul class="current">
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../references/">References</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">pipeline-validate-ProteomicPSM</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Outputs</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/v2.4.3/README.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="outputs">Outputs</h2>
+<p>With both ProtLoom options off, each sample or plex has final OpenMS results under <code>&lt;output_dir&gt;/validate-ProteomicPSM-&lt;version&gt;/&lt;sample_name&gt;/OpenMS-&lt;version&gt;/output/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>&lt;sample_name&gt;_&lt;engine&gt;_filter.idXML</code></td>
+<td>Search-engine identifications after PSM-level FDR estimation and IDFilter.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_&lt;engine&gt;_filter.idXML.sha512</code></td>
+<td>SHA-512 checksum of the filtered search-engine idXML.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_&lt;engine&gt;_filter.mzTab</code></td>
+<td>mzTab export of the filtered engine result.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_&lt;engine&gt;_idswitch_pep.idXML</code></td>
+<td>Unfiltered identifications with Percolator PEP restored as the active score; written when Percolator is enabled.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_consensus_filter.idXML</code></td>
+<td>Filtered consensus identifications; written when <code>merge_consensus = true</code>.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_consensus_filter.idXML.sha512</code></td>
+<td>SHA-512 checksum of the filtered consensus idXML.</td>
+</tr>
+<tr>
+<td><code>&lt;sample_name&gt;_consensus_filter.mzTab</code></td>
+<td>mzTab export of the filtered consensus result.</td>
+</tr>
+</tbody>
+</table>
+<p>With <code>run_protloom = true</code>, OpenMS FDR calculation is skipped because ProtLoom supplies q-values. Each sample has <code>&lt;sample_name&gt;/ProtLoom-&lt;version&gt;/output/</code> with <code>&lt;sample_name&gt;_groups.tsv</code>, <code>&lt;sample_name&gt;_peptides.tsv</code>, <code>&lt;sample_name&gt;_assignments.tsv</code>, <code>&lt;sample_name&gt;_run.json</code>, <code>&lt;sample_name&gt;_psm_fdr.tsv</code>, <code>&lt;sample_name&gt;_protein_group_fdr.tsv</code>, <code>&lt;sample_name&gt;_protloom.idXML</code> (annotated, before final filtering) and its <code>.sha512</code> checksum, <code>&lt;sample_name&gt;_ProtLoom_filter.idXML</code> and its <code>.sha512</code> checksum, and <code>&lt;sample_name&gt;_ProtLoom_filter.mzTab</code>. The final idXML is filtered with the same <code>IDFilter</code> settings as the OpenMS route, including <code>filter_psm_score_peptide</code> (default <code>0.01</code>). mzTab uses that final idXML; SHA-512 checksums cover both the annotated and final idXML files. Multi-sample runs additionally publish <code>&lt;dataset_id&gt;/ProtLoom-&lt;version&gt;/output/&lt;dataset_id&gt;-cohort_graph.json</code> and <code>&lt;dataset_id&gt;-cohort_manifest.json</code>. Set <code>dataset_id</code> to the desired cohort directory name (default <code>cohort</code>).</p>
+<p>Each <code>.sha512</code> file contains the SHA-512 digest and idXML filename in standard checksum format. It is generated from the bytes of the corresponding idXML file.</p>
+<p>Set <code>export_easypqp_reports = true</code> to publish cohort-wide <code>&lt;dataset_id&gt;-psm.tsv</code>, <code>&lt;dataset_id&gt;-peptides.tsv</code>, and <code>&lt;dataset_id&gt;-easypqp_export_summary.tsv</code> under <code>&lt;dataset_id&gt;/ProtLoom-&lt;version&gt;/output/</code> for EasyPQP library generation; export is disabled by default. The reports include target PSMs with q-values at or below <code>easypqp_psm_qvalue</code> and protein groups with q-values at or below <code>protloom_easypqp_group_qvalue</code> (both default to <code>0.01</code>). Since EasyPQP maps proteins by unmodified peptide sequence, the exporter excludes sequences assigned to different ProtLoom groups across the cohort and reports the excluded sequence and PSM counts in the summary. <code>Gene</code> uses the leading protein accession as a stable placeholder because the ProtLoom assignment table has no gene field. Supply the matching idXML and mzML files when running EasyPQP; the TSVs alone are filters and protein annotations, not spectra.</p>
+<p>When <code>run_protloom = false</code>, select <code>protein_inference_algorithm = 'ProteinProphet'</code>, <code>'Fido'</code>, or <code>'Epifany'</code>. ProteinProphet (the default) runs iProphet on the Percolator pepXML files and publishes pepXML, protXML, and idXML. Fido converts the unfiltered Percolator PEP idXMLs into Fido’s native peptide–protein graph and target/decoy list, runs standalone Fido, and publishes its text output plus a parsed group JSON file. Epifany consumes the PEP idXMLs directly and publishes its cohort idXML using the current OpenMS image. The three EasyPQP TSVs and native grouping outputs are published under <code>&lt;dataset_id&gt;/&lt;algorithm&gt;/output/</code>. Fido and Epifany export inferred protein groups above their respective posterior probability cutoffs (<code>0.01</code> by default); ProteinProphet uses <code>proteinprophet_min_probability</code>. The PSM table uses the selected FDR route's per-engine q-value idXML at or below <code>easypqp_psm_qvalue</code>; the peptide table assigns each sequence to one accepted group from the selected algorithm. Decoys, PSMs without a unique accepted group, conflicting spectrum matches, and peptide sequences assigned to multiple groups are excluded and counted in the summary. <code>Gene</code> and <code>Protein ID</code> use the group's leading accession. <code>Mapped Proteins</code> lists other target accessions recorded in the retained PSMs' peptide evidence, separated by semicolons; it does not infer mappings from every group member. This route requires <code>run_percolator = true</code>, <code>input_mzml_csv</code>, and q-values (<code>fdr_algorithm_no_qvalues = false</code>); it works with either Percolator workflow.</p>
+<p>Before iProphet, the ProteinProphet route reads each idXML's digestion-enzyme rule and repairs OpenMS-converted pepXML. It recalculates <code>num_tol_term</code> separately for the primary and alternative protein matches and makes the PEP-derived probability available at every NTT value. One-residue C-terminal and N-terminal cleavage rules are supported, as is <code>no cleavage</code> (only protein boundaries count as termini); other rules fail explicitly. Matches with unknown flanking residues retain their existing NTT and are counted in the repair log. The separate <code>num_missed_cleavages</code> field remains as written by OpenMS.</p>
+<p>For Epifany, set <code>epifany_greedy_group_resolution = 'remove_associations_only'</code> to resolve shared peptide associations without removing protein hits, or <code>remove_proteins_wo_evidence</code> to also remove proteins left without evidence. The pipeline runs Epifany with <code>-algorithm:keep_best_PSM_only false</code> so nonbest PSMs remain in its output for EasyPQP matching; Epifany still uses only the best PSM per peptide for protein inference. In every Epifany mode, EasyPQP assigns passing PSMs to accepted groups using peptide evidence in Epifany's output; q-values and spectrum mappings still come from the per-engine q-value idXML files. Evidence matching resolves each idXML's mzML origin before comparing spectrum reference, modified sequence, charge, RT, and m/z; Epifany's merged <code>id_merge_index</code> is not compared directly with a per-engine index. The export summary reports PSMs matching zero, one, or multiple accepted groups, PSMs with one group after resolution (before spectrum deduplication and sequence ambiguity filtering), and PSMs without a matching Epifany identification. With the default <code>none</code>, Epifany leaves shared associations unresolved, so those PSMs remain excluded when they match multiple accepted groups. Epifany can omit or alter a peptide identification during inference; an unmatched q-value PSM has no resolved association and is excluded from EasyPQP export. Greedy resolution chooses an association from inferred protein probabilities; it does not establish that a shared peptide is biologically unique.</p>
+<p>The annotation step does not apply a q-value cutoff: every input PSM with a matching ProtLoom PSM and protein-group result is annotated, regardless of its q-value. PSMs without a mapped result are removed from the annotated file by default; set <code>protloom_idxml_unmatched_psms = 'keep'</code> to retain them there with their original scores and protein evidence. The final <code>IDFilter</code> input always contains only mapped PSMs, since unmatched hits have no ProtLoom q-value to filter. When keeping unmatched PSMs in the annotated file, the writer places matched and unmatched hits in separate identification runs so their score types remain accurate. Matched peptide hits carry <code>protein_tier</code>, <code>peptide_class</code>, <code>q_value</code>, <code>probability</code>, <code>protloom_pep</code> (1 − probability), and <code>protloom_group_id</code> metadata. Their protein evidence points to the ProtLoom leading protein. Protein hits carry group q-value, probability, and PEP metadata, and <code>ProteinIdentification</code> records each group's full protein membership. By default, matched peptide hits keep their original Percolator score as the primary score in the annotated file and matched protein hits use the ProtLoom group q-value. Set <code>protloom_idxml_primary_score = 'pep'</code> or <code>'q_value'</code> to use that ProtLoom score as the primary score for matched peptide and protein hits. When available, the previous hit score is saved under its original score-type name in hit metadata. Before final filtering, <code>IDScoreSwitcher</code> changes <code>pep</code> or <code>original</code> primary PSM scores to ProtLoom q-value; <code>q_value</code> goes directly to <code>IDFilter</code>.</p>
+<p>Intermediate idXML files are published under each sample’s <code>intermediate/</code> directory when <code>save_intermediate_files = true</code>. Pipeline reports are stored in a run-level timestamped <code>log-validate-ProteomicPSM-*</code> directory; process logs are grouped there by sample. <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b7f25c9f09b4696fdde338e02ec10134b27ffea/nftest.yml">nftest.yml</a> defines OpenMS and MSBooster multi-sample integration cases plus an MSFragger DIA case. Fill in the <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b7f25c9f09b4696fdde338e02ec10134b27ffea/test/test_integration_msbooster_msfragger_dia/input.csv">DIA idXML CSV</a> and <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/blob/4b7f25c9f09b4696fdde338e02ec10134b27ffea/test/test_integration_msbooster_msfragger_dia/mzml.csv">DIA mzML CSV</a> before running the DIA case. From the repository root, run <code>python3 test/run-nftest.py test-integration-OpenMS</code>; set <code>NFT_CLUSTER=pines</code> for Apptainer, or <code>NFT_CLUSTER=boutroslab_aws</code> inside an AWS Slurm job. <code>NFT_RUN_ROOT</code> selects the output base directory.</p>
+<hr />
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../inputs/" class="btn btn-neutral float-left" title="Inputs"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../references/" class="btn btn-neutral float-right" title="References">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/TheBoutrosLab/pipeline-validate-ProteomicPSM/tree/v2.4.3" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../inputs/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../references/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
